@@ -57,7 +57,7 @@
     .view {
       display: none; position: fixed; inset: 0;
       flex-direction: column;
-      padding-top: var(--sit);
+      padding-top: env(safe-area-inset-top, 44px);
     }
     .view.active { display: flex; animation: viewIn .28s cubic-bezier(.22,.68,0,1.1) both; }
     .view.active.view-back { animation: viewInBack .28s cubic-bezier(.22,.68,0,1.1) both; }
@@ -96,7 +96,7 @@
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
-      padding: .85rem .9rem calc(.85rem + var(--tab) + var(--sib));
+      padding: .85rem .9rem calc(.85rem + var(--tab) + env(safe-area-inset-bottom, 34px));
       display: flex; flex-direction: column; gap: .7rem;
     }
 
@@ -154,8 +154,8 @@
     /* ── TAB BAR ── */
     .tabbar {
       position: absolute; bottom: 0; left: 0; right: 0;
-      height: calc(var(--tab) + var(--sib));
-      padding-bottom: var(--sib);
+      height: calc(var(--tab) + env(safe-area-inset-bottom, 34px));
+      padding-bottom: env(safe-area-inset-bottom, 34px);
       background: rgba(255,255,255,.92);
       -webkit-backdrop-filter: blur(20px);
       backdrop-filter: blur(20px);
@@ -179,7 +179,7 @@
     .tb.on .ti { transform: scale(1.18) translateY(-1px); }
     .tb.on::after {
       content: ''; position: absolute;
-      bottom: calc(var(--sib) + 4px); left: 50%; transform: translateX(-50%);
+      bottom: calc(env(safe-area-inset-bottom, 34px) + 4px); left: 50%; transform: translateX(-50%);
       width: 20px; height: 3px; border-radius: 99px;
       background: var(--grad);
     }
@@ -219,7 +219,7 @@
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
-      padding: .85rem .9rem calc(.85rem + var(--sib));
+      padding: .85rem .9rem calc(.85rem + env(safe-area-inset-bottom, 34px));
       display: flex; flex-direction: column; gap: .85rem;
     }
 
@@ -330,7 +330,7 @@
     .rscroll {
       width: 100%; overflow-y: scroll;
       -webkit-overflow-scrolling: touch;
-      padding: 1.5rem 1rem calc(1.5rem + var(--sib));
+      padding: 1.5rem 1rem calc(1.5rem + env(safe-area-inset-bottom, 34px));
       display: flex; justify-content: center;
     }
     .rcard {
@@ -381,7 +381,7 @@
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
-      padding: .85rem .9rem calc(.85rem + var(--sib));
+      padding: .85rem .9rem calc(.85rem + env(safe-area-inset-bottom, 34px));
       display: flex; flex-direction: column; gap: .85rem;
     }
     .fsec {
@@ -419,7 +419,7 @@
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
-      padding: .85rem .9rem calc(.85rem + var(--sib));
+      padding: .85rem .9rem calc(.85rem + env(safe-area-inset-bottom, 34px));
       display: flex; flex-direction: column; gap: .85rem;
     }
     .eblock {
@@ -525,7 +525,7 @@
     .det-scroll {
       flex: 1; overflow-y: auto;
       -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
-      padding: .9rem .9rem calc(.9rem + var(--sib));
+      padding: .9rem .9rem calc(.9rem + env(safe-area-inset-bottom, 34px));
       display: flex; flex-direction: column; gap: .85rem;
     }
 
@@ -650,7 +650,7 @@
     #vg-end { background:#0f172a; }
     .ge-scroll {
       flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
-      padding:1.5rem 1rem calc(1.5rem + var(--sib));
+      padding:1.5rem 1rem calc(1.5rem + env(safe-area-inset-bottom, 34px));
       display:flex; flex-direction:column; align-items:center; gap:1rem;
     }
     .ge-trophy { font-size:4rem; text-align:center; }
@@ -813,7 +813,7 @@
 
     /* toggle button */
     #theme-btn {
-      position: fixed; top: calc(var(--sit) + 10px); right: 14px;
+      position: fixed; top: calc(env(safe-area-inset-top, 44px) + 10px); right: 14px;
       z-index: 999; width: 36px; height: 36px;
       background: rgba(255,255,255,.22); border-radius: 50%;
       font-size: 1.05rem; display: flex; align-items: center; justify-content: center;
@@ -890,7 +890,7 @@
 </head>
 <body>
 
-<div style="position:fixed;top:calc(var(--sit)+10px);right:58px;z-index:999;font-size:.62rem;font-weight:700;color:rgba(255,255,255,.55);letter-spacing:.04em;pointer-events:none;line-height:36px;white-space:nowrap;">Made by Alexx</div>
+<div style="position:fixed;top:calc(env(safe-area-inset-top, 44px)+10px);right:58px;z-index:999;font-size:.62rem;font-weight:700;color:rgba(255,255,255,.55);letter-spacing:.04em;pointer-events:none;line-height:36px;white-space:nowrap;">Made by Alexx</div>
 <button id="theme-btn" onclick="toggleDark()" aria-label="Mode sombre">🌙</button>
 
 <!-- ═══════════════════ HOME ═══════════════════ -->
