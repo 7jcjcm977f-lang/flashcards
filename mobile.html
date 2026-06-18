@@ -67,10 +67,10 @@
     ════════════════════════════════════ */
     #vh { background: var(--bg); }
 
-    .tab-panels { flex: 1; overflow: hidden; position: relative; }
+    .tab-panels { flex: 1; min-height: 0; overflow: hidden; position: relative; }
     .tp {
       display: none; position: absolute; inset: 0;
-      flex-direction: column; overflow: clip;
+      flex-direction: column; overflow: hidden;
     }
     .tp.active { display: flex; animation: tpIn .28s cubic-bezier(.22,.68,0,1.1) both; }
 
@@ -91,7 +91,8 @@
 
     .scroll-body {
       flex: 1;
-      overflow-y: auto;
+      min-height: 0;
+      overflow-y: scroll;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
@@ -214,7 +215,7 @@
     .pfill { height: 100%; background: #fff; opacity: .9; border-radius: 0 99px 99px 0; transition: width .4s cubic-bezier(.4,0,.2,1); }
 
     .qscroll {
-      flex: 1; overflow-y: auto;
+      flex: 1; min-height: 0; overflow-y: scroll;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
@@ -327,7 +328,7 @@
       justify-content: center; align-items: center;
     }
     .rscroll {
-      width: 100%; overflow-y: auto;
+      width: 100%; overflow-y: scroll;
       -webkit-overflow-scrolling: touch;
       padding: 1.5rem 1rem calc(1.5rem + var(--sib));
       display: flex; justify-content: center;
@@ -376,7 +377,7 @@
     .dnav .sp { width: 44px; }
 
     .fscroll {
-      flex: 1; overflow-y: auto;
+      flex: 1; min-height: 0; overflow-y: scroll;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
@@ -414,7 +415,7 @@
     ════════════════════════════════════ */
     #ve { background: var(--bg); }
     .escroll {
-      flex: 1; overflow-y: auto;
+      flex: 1; min-height: 0; overflow-y: scroll;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
       touch-action: pan-y;
