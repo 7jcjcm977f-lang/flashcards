@@ -673,6 +673,70 @@
     /* ── UTILS ── */
     .hidden { display: none !important; }
 
+    /* ── DARK MODE ── */
+    body.dark {
+      --bg:  #120f1d;
+      --card:#1e1a2e;
+      --txt: #e8e4f5;
+      --sub: #7c7494;
+      --bdr: #2d2650;
+      --pl:  #2a2060;
+      --pl2: #1e1a2e;
+    }
+    body.dark .tabbar {
+      background: rgba(18,15,29,.95);
+      border-top-color: rgba(99,102,241,.2);
+    }
+    body.dark .srow,
+    body.dark .ex-row    { background: #1e1a2e; color: var(--txt); }
+    body.dark .srow-sub,
+    body.dark .ex-row-type { color: var(--sub); }
+    body.dark .card      { background: #1e1a2e; }
+    body.dark .card-q    { color: #e2dff5; }
+    body.dark .card-a    { color: #b8b2d8; }
+    body.dark .ans-ta    { background: #1e1a2e; color: var(--txt); border-color: var(--bdr); }
+    body.dark .ans-ta:focus { background: #241f38; }
+    body.dark .cblock-u  { background: #1e1a40; border-color: #3730a3; color: #c7d2fe; }
+    body.dark .rcard     { background: #1e1a2e; }
+    body.dark .r-msg     { color: var(--sub); }
+    body.dark .r-failed  { background: #2d1212; border-color: #7f1d1d; }
+    body.dark .r-failed li { color: #fca5a5; }
+    body.dark .fitem     { background: #17142a; }
+    body.dark .det-cons  { background: #1e1a2e; color: #d1cde8; }
+    body.dark .det-corr-body { background: #162420; border-color: #166534; color: #86efac; }
+    body.dark .etog      { background: #17142a; color: #a5b4fc; }
+    body.dark .ecorr     { background: #162420; border-top-color: #166534; color: #86efac; }
+    body.dark .det-fitem { background: #1e1a2e; }
+    body.dark .det-fitem span { color: #b8b2d8; }
+    body.dark .btn-sec   { background: #1e1a2e; color: var(--txt); border-color: var(--bdr); }
+    body.dark .btn-sk    { border-color: var(--bdr); color: var(--sub); }
+    body.dark .btn-out   { color: #a5b4fc; border-color: #a5b4fc; }
+    body.dark .defi-option       { background: #1e1a2e; border-color: var(--bdr); color: var(--sub); }
+    body.dark .defi-option.sel   { background: #2a2060; border-color: var(--p); color: #a5b4fc; }
+    body.dark .home-ranking,
+    body.dark #home-ranking      { background: #1e1a2e !important; }
+    body.dark .ge-rank-name      { color: #b8b2d8; }
+    body.dark .eblock-h          { border-bottom-color: var(--bdr); }
+    body.dark .card-hr           { background: var(--bdr); }
+    body.dark .scroll-body,
+    body.dark .qscroll,
+    body.dark .fscroll,
+    body.dark .escroll,
+    body.dark .det-scroll        { background: var(--bg); }
+
+    /* toggle button */
+    #theme-btn {
+      position: fixed; top: calc(var(--sit) + 10px); right: 14px;
+      z-index: 999; width: 36px; height: 36px;
+      background: rgba(255,255,255,.22); border-radius: 50%;
+      font-size: 1.05rem; display: flex; align-items: center; justify-content: center;
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+      border: 1.5px solid rgba(255,255,255,.3);
+      transition: transform .2s, background .2s;
+      cursor: pointer;
+    }
+    #theme-btn:active { transform: scale(.88); }
+
     /* ── ANIMATIONS ── */
     @keyframes slideIn {
       from { transform: translateX(60px); opacity: 0; }
@@ -708,6 +772,8 @@
   </style>
 </head>
 <body>
+
+<button id="theme-btn" onclick="toggleDark()" aria-label="Mode sombre">🌙</button>
 
 <!-- ═══════════════════ HOME ═══════════════════ -->
 <div id="vh" class="view active">
@@ -3354,6 +3420,21 @@
   }
 
   function replayGame() { showView('vh'); switchTab('defi'); }
+
+  /* ── DARK MODE ── */
+  function toggleDark() {
+    document.body.classList.toggle('dark');
+    const dark = document.body.classList.contains('dark');
+    $('theme-btn').textContent = dark ? '☀️' : '🌙';
+    localStorage.setItem('dark', dark ? '1' : '0');
+  }
+  (function initDark() {
+    if (localStorage.getItem('dark') === '1') {
+      document.body.classList.add('dark');
+      const btn = $('theme-btn');
+      if (btn) btn.textContent = '☀️';
+    }
+  })();
 
   /* ── INIT ── */
   renderHome();
