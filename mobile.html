@@ -141,6 +141,12 @@
       white-space: nowrap; flex-shrink: 0;
     }
 
+    .srow-mastery { margin-top: .45rem; display: flex; align-items: center; gap: .5rem; }
+    .srow-mastery-bar { flex:1; height:4px; background:rgba(255,255,255,.25); border-radius:99px; overflow:hidden; }
+    .srow-mastery-fill { height:100%; border-radius:99px; background:rgba(255,255,255,.9); transition:width .6s ease; }
+    .srow-due { background:rgba(255,80,80,.85); color:#fff; font-size:.68rem; font-weight:800; padding:.15rem .5rem; border-radius:99px; white-space:nowrap; }
+    .home-tip { background:var(--card); border:1.5px solid var(--bdr); border-radius:14px; padding:.75rem 1rem; font-size:.82rem; color:var(--txt); display:flex; align-items:center; gap:.6rem; }
+
     .btn-all {
       background: var(--grad); color: #fff;
       border-radius: 16px; font-size: 1rem; font-weight: 700;
@@ -961,6 +967,7 @@
         <p id="home-sub" style="margin-top:.15rem">Choisissez une matière ou révisez tout</p>
       </div>
       <div class="scroll-body">
+        <div id="home-tip" class="home-tip" style="display:none"></div>
         <button class="btn-all" onclick="startQuizAll()">🎯 Tout réviser — toutes les matières</button>
         <button class="btn-all" style="background:linear-gradient(135deg,#1e293b,#0f172a);animation:none" onclick="startExam()">📝 Examen Blanc — 3h chrono · score détaillé</button>
         <div id="quiz-list"></div>
@@ -4687,21 +4694,44 @@
   }
 
   function mkState() {
-    return { queue:[], failed:[], correct:0, total:0, idx:0, round:1, deckIds:[], title:'' };
+    return { queue:[], failed:[], correct:0, total:0, idx:0, round:1, deckIds:[], title:'', srsIds:[] };
   }
   let st = mkState();
   let revealed = false;
 
   function renderHome() {
-    $('quiz-list').innerHTML = QD.decks.map(d =>
-      `<div class="srow" style="--ac:${d.color}" onclick="startDeck('${d.id}')">
+    // build conseil (matière avec le plus de cartes à revoir)
+    let worstDeck = null, worstDue = 0;
+    QD.decks.forEach(d => {
+      const due = srsDueCount(d.id, d.cards);
+      if (due > worstDue) { worstDue = due; worstDeck = d; }
+    });
+    const tipEl = $('home-tip');
+    if (tipEl) {
+      if (worstDue > 0) {
+        tipEl.style.display = '';
+        tipEl.innerHTML = `<span style="font-size:1.2rem">💡</span> <span><b>${worstDeck.emoji} ${worstDeck.name}</b> — ${worstDue} carte${worstDue > 1 ? 's' : ''} à revoir en priorité</span>`;
+      } else {
+        tipEl.style.display = 'none';
+      }
+    }
+
+    $('quiz-list').innerHTML = QD.decks.map(d => {
+      const due = srsDueCount(d.id, d.cards);
+      const pct = srsMasteryPct(d.id, d.cards);
+      const dueBadge = due > 0 ? `<span class="srow-due">↩ ${due}</span>` : '';
+      return `<div class="srow" style="--ac:${d.color}" onclick="startDeck('${d.id}')">
         <span class="srow-emoji">${d.emoji}</span>
         <div class="srow-info">
           <div class="srow-name">${d.name}</div>
-          <div class="srow-sub">${d.cards.length} cartes</div>
+          <div class="srow-sub">${d.cards.length} cartes · ${pct}% maîtrisé</div>
+          <div class="srow-mastery">
+            <div class="srow-mastery-bar"><div class="srow-mastery-fill" style="width:${pct}%"></div></div>
+            ${dueBadge}
+          </div>
         </div>
-        <span class="srow-badge">${d.cards.length}</span>
-      </div>`).join('');
+      </div>`;
+    }).join('');
 
     $('fiche-list').innerHTML = FD.map(f =>
       `<div class="srow" style="--ac:${f.color}" onclick="openFiche('${f.id}')">
@@ -4729,13 +4759,19 @@
     const d = QD.decks.find(x => x.id === id);
     st = mkState();
     st.deckIds = [id]; st.title = `${d.emoji} ${d.name}`;
-    beginQuiz(shuffle(d.cards));
+    const sorted = srsSortedCards(id, d.cards);
+    st.srsIds = sorted.map(c => ({ deckId: id, idx: c._idx }));
+    beginQuiz(sorted);
   }
   function startQuizAll() {
     st = mkState();
     st.deckIds = QD.decks.map(d => d.id);
     st.title = '🎯 Toutes les matières';
-    beginQuiz(shuffle(QD.decks.flatMap(d => d.cards)));
+    const all = QD.decks.flatMap(d =>
+      srsSortedCards(d.id, d.cards).map(c => ({ ...c, _deckId: d.id }))
+    );
+    st.srsIds = all.map(c => ({ deckId: c._deckId, idx: c._idx }));
+    beginQuiz(all);
   }
   function beginQuiz(cards) {
     st.queue = cards; st.total = cards.length;
@@ -4816,6 +4852,10 @@
       ovEl.classList.remove('flash-ok','flash-ko');
       void ovEl.offsetWidth;
       ovEl.classList.add(ok ? 'flash-ok' : 'flash-ko');
+    }
+    if (st.srsIds && st.srsIds[st.idx]) {
+      const { deckId, idx } = st.srsIds[st.idx];
+      srsUpdate(deckId, idx, ok);
     }
     if (ok) st.correct++;
     else st.failed.push(st.queue[st.idx]);
@@ -5379,6 +5419,37 @@
     btn.appendChild(r);
     setTimeout(() => r.remove(), 600);
   });
+
+  /* ── SRS (répétition espacée) ── */
+  const SRS_INTERVALS = [0, 1, 3, 7, 14, 30];
+  function srsKey(deckId, idx) { return `srs_${deckId}_${idx}`; }
+  function srsGet(deckId, idx) {
+    const raw = localStorage.getItem(srsKey(deckId, idx));
+    return raw ? JSON.parse(raw) : { level: 0, nextReview: 0 };
+  }
+  function srsUpdate(deckId, idx, ok) {
+    const d = srsGet(deckId, idx);
+    d.level = ok ? Math.min(d.level + 1, SRS_INTERVALS.length - 1) : 0;
+    d.nextReview = Date.now() + SRS_INTERVALS[d.level] * 86400000;
+    localStorage.setItem(srsKey(deckId, idx), JSON.stringify(d));
+  }
+  function srsPriority(deckId, idx) {
+    const d = srsGet(deckId, idx);
+    if (d.level === 0 && d.nextReview === 0) return 1;
+    if (Date.now() >= d.nextReview) return 0;
+    return 2;
+  }
+  function srsDueCount(deckId, cards) {
+    return cards.filter((_, i) => srsPriority(deckId, i) === 0).length;
+  }
+  function srsMasteryPct(deckId, cards) {
+    return Math.round(cards.filter((_, i) => srsGet(deckId, i).level >= 3).length / cards.length * 100);
+  }
+  function srsSortedCards(deckId, cards) {
+    return cards
+      .map((c, i) => ({ ...c, _idx: i, _pri: srsPriority(deckId, i) }))
+      .sort((a, b) => a._pri - b._pri || Math.random() - .5);
+  }
 
   /* ── STREAK ── */
   function initStreak() {
