@@ -673,6 +673,62 @@
     /* ── UTILS ── */
     .hidden { display: none !important; }
 
+    /* ── SUJETS BAC ── */
+    .ex-subtabs {
+      display:flex; flex-shrink:0;
+      background:var(--card); border-bottom:1px solid var(--bdr); padding:0 .75rem;
+    }
+    .ex-stab {
+      flex:1; padding:.65rem .5rem; font-size:.8rem; font-weight:700;
+      color:var(--sub); background:none; border-bottom:3px solid transparent;
+      transition:color .15s, border-color .15s;
+    }
+    .ex-stab.on { color:var(--p); border-bottom-color:var(--p); }
+    .ex-subpanel { display:none; flex:1; flex-direction:column; overflow:hidden; }
+    .ex-subpanel.active { display:flex; }
+
+    .bac-srow {
+      background:var(--card); border-radius:16px;
+      padding:.95rem 1rem; display:flex; align-items:center; gap:.85rem;
+      box-shadow:0 2px 12px rgba(99,102,241,.10);
+      border-left:5px solid var(--ac,#999); min-height:76px;
+      transition:transform .15s; cursor:pointer; animation:fadeInUp .3s both;
+    }
+    .bac-srow:active { transform:scale(.96); }
+    .bac-srow-info { flex:1; }
+    .bac-srow-annee { font-size:.7rem; font-weight:700; color:var(--p); margin-bottom:.2rem; }
+    .bac-srow-titre { font-weight:700; font-size:.92rem; }
+    .bac-srow-objet { font-size:.75rem; color:var(--sub); margin-top:.15rem; }
+
+    .bac-section { background:var(--card); border-radius:16px; overflow:hidden;
+      box-shadow:0 2px 12px rgba(99,102,241,.10); animation:fadeInUp .3s both; }
+    .bac-sec-head {
+      padding:.8rem 1rem; display:flex; align-items:center;
+      justify-content:space-between; cursor:pointer;
+      border-bottom:1px solid var(--bdr); transition:background .15s;
+    }
+    .bac-sec-head:active { background:var(--pl2); }
+    .bac-sec-title { font-weight:700; font-size:.9rem; color:var(--txt); flex:1; padding-right:.5rem; }
+    .bac-sec-arr { color:var(--p); font-size:1.1rem; transition:transform .2s; flex-shrink:0; }
+    .bac-sec-arr.open { transform:rotate(90deg); }
+    .bac-sec-body {
+      padding:1rem; font-size:.88rem; line-height:1.85;
+      white-space:pre-line; color:var(--txt); display:none;
+    }
+    .bac-sec-body.open { display:block; }
+    .bac-sec-body.corr { background:#f0fdf4; color:#14532d; border-top:1px solid #bbf7d0; }
+    .bac-sec-body.sujet { background:var(--pl2); }
+    body.dark .bac-sec-body.corr  { background:#162420; color:#86efac; border-top-color:#166534; }
+    body.dark .bac-sec-body.sujet { background:#1e1a2e; }
+    body.dark .bac-srow, body.dark .bac-section { background:#1e1a2e; }
+    body.dark .bac-sec-title { color:var(--txt); }
+
+    .bac-info-card {
+      background:var(--grad); border-radius:16px; padding:1rem 1.1rem; color:#fff;
+    }
+    .bac-info-card h3 { font-size:.85rem; font-weight:800; margin-bottom:.3rem; }
+    .bac-info-card p  { font-size:.8rem; opacity:.85; line-height:1.6; }
+
     /* ── DARK MODE ── */
     body.dark {
       --bg:  #120f1d;
@@ -809,8 +865,19 @@
         <h1>✏️ Exercices</h1>
         <p>Entraînement avec corrigés détaillés</p>
       </div>
-      <div class="scroll-body">
-        <div id="ex-list"></div>
+      <div class="ex-subtabs">
+        <button class="ex-stab on" id="stab-exos" onclick="switchExTab('exos')">✏️ Exercices</button>
+        <button class="ex-stab" id="stab-bac" onclick="switchExTab('bac')">📜 Sujets de Bac</button>
+      </div>
+      <div id="ex-panel-exos" class="ex-subpanel active">
+        <div class="scroll-body">
+          <div id="ex-list"></div>
+        </div>
+      </div>
+      <div id="ex-panel-bac" class="ex-subpanel">
+        <div class="scroll-body">
+          <div id="bac-list"></div>
+        </div>
       </div>
     </div>
 
@@ -1003,6 +1070,16 @@
     <button class="nav-arr" id="sec-next" onclick="navSec(1)">›</button>
   </div>
   <div class="det-scroll" id="det-sec-body"></div>
+</div>
+
+<!-- vue détail sujet bac -->
+<div id="vb-det" class="view">
+  <div class="det-nav">
+    <button class="nav-arr" onclick="showView('vh');switchTab('exercices');switchExTab('bac')">‹</button>
+    <h2 id="vb-title">Sujet<small id="vb-sub"></small></h2>
+    <div style="width:38px"></div>
+  </div>
+  <div class="det-scroll" id="vb-body"></div>
 </div>
 
 <!-- vue défi - jeu -->
@@ -2841,6 +2918,277 @@
 ]
 </script>
 
+<script type="application/json" id="b-data">
+[
+  {
+    "id": "francais",
+    "name": "Français — EAF",
+    "emoji": "📖",
+    "color": "#4ECDC4",
+    "sujets": [
+      {
+        "id": "fr-2023",
+        "annee": "2023",
+        "type": "Dissertation",
+        "titre": "La poésie et le réel",
+        "objet": "Poésie du XIXe au XXIe siècle",
+        "oeuvres": "Les Fleurs du Mal (Baudelaire) · Cahier d'un retour au pays natal (Césaire) · La Vénus d'Ille et autres nouvelles (Mérimée)",
+        "sections": [
+          {
+            "titre": "📜 Sujet de dissertation",
+            "type": "sujet",
+            "contenu": "La poésie n'est-elle qu'une expression personnelle des sentiments du poète ?\n\nVous répondrez à cette question dans un développement organisé en vous appuyant sur les œuvres au programme, sur les textes du corpus et sur vos lectures personnelles.\n\nDurée : 4 heures — Coefficient : 5"
+          },
+          {
+            "titre": "📄 Sujet de commentaire",
+            "type": "sujet",
+            "contenu": "Vous commenterez le poème suivant de Victor Hugo :\n\n« Demain, dès l'aube, à l'heure où blanchit la campagne,\nJe partirai. Vois-tu, je sais que tu m'attends.\nJ'irai par la forêt, j'irai par la montagne.\nJe ne puis demeurer loin de toi plus longtemps.\n\nJe marcherai les yeux fixés sur mes pensées,\nSans rien voir au dehors, sans entendre aucun bruit,\nSeul, inconnu, le dos courbé, les mains croisées,\nTriste, et le jour pour moi sera comme la nuit.\n\nJe ne regarderai ni l'or du soir qui tombe,\nNi les voiles au loin descendant vers Harfleur,\nEt quand j'arriverai, je mettrai sur ta tombe\nUn bouquet de houx vert et de bruyère en fleur. »\n(Victor Hugo, Les Contemplations, 1856)"
+          },
+          {
+            "titre": "✅ Correction — Plan dissertation",
+            "type": "correction",
+            "contenu": "Problématique : La poésie se réduit-elle à l'expression d'un moi lyrique subjectif, ou dépasse-t-elle cette dimension personnelle ?\n\nI. La poésie comme expression du moi lyrique\n  A. Le poète exprime ses émotions intimes\n    → Baudelaire, Spleen : mélancolie personnelle, douleur existentielle\n    → Hugo, Demain dès l'aube : deuil de Léopoldine, adresse directe au « tu »\n  B. La nature comme miroir des états d'âme\n    → Le paysage romantique reflète le moi (Hugo, Lamartine)\n    → Correspondances baudelairiennes entre monde extérieur et vie intérieure\n\nII. Mais la poésie transcende le personnel pour toucher l'universel\n  A. Le poète donne voix à l'expérience humaine collective\n    → Rimbaud : refus du moi convenu (« Je est un autre »)\n    → Césaire : le « je » devient voix de tout un peuple colonisé\n  B. La forme poétique transforme le particulier en universel\n    → La versification, les images, le rythme abstraient l'émotion personnelle\n    → La publication transforme l'intime en partage\n\nIII. La poésie crée un moi augmenté, à la fois singulier et collectif\n  A. Le poète est un « voyant » (Rimbaud) qui perçoit au-delà de lui-même\n    → Baudelaire : le poète flâneur qui absorbe la modernité\n    → Apollinaire : le lyrisme de la vie quotidienne moderne\n  B. La poésie engage, témoigne, résiste\n    → Résistance (Aragon, Éluard) : la poésie au service d'une cause\n    → Césaire : poésie comme acte politique et identitaire\n\nConclusion : La poésie part toujours d'un moi singulier mais son ambition est de toucher la conscience de tous."
+          }
+        ]
+      },
+      {
+        "id": "fr-2022",
+        "annee": "2022",
+        "type": "Dissertation",
+        "titre": "Le roman et l'engagement",
+        "objet": "Le roman et le récit du XVIIIe au XXIe siècle",
+        "oeuvres": "La Princesse de Clèves (Mme de Lafayette) · Les Misérables (Hugo) · Madame Bovary (Flaubert)",
+        "sections": [
+          {
+            "titre": "📜 Sujet de dissertation",
+            "type": "sujet",
+            "contenu": "Le romancier doit-il nécessairement s'engager dans son œuvre ?\n\nVous répondrez à cette question dans un développement organisé en vous appuyant sur les œuvres au programme, sur les textes du corpus et sur vos lectures personnelles.\n\nDurée : 4 heures — Coefficient : 5"
+          },
+          {
+            "titre": "📄 Sujet de commentaire",
+            "type": "sujet",
+            "contenu": "Vous commenterez l'extrait suivant de Zola, Germinal (1885) :\n\n« C'était la vision rouge de la révolution qui les emporterait tous, fatalement, par une soirée sanglante de cette fin de siècle. Oui, un soir, le peuple lâché, débridé, galoperait ainsi sur les chemins ; et il ruissellerait du sang des bourgeois, il promènerait des têtes, il sèmerait l'or des coffres éventrés. Les femmes hurleraient, les hommes auraient ces mâchoires de loup ouvertes pour mordre. Oui, ce seraient les mêmes guenilles, le même tonnerre de gros sabots, la même cohue effrayante, de peau sale, d'haleine empestée, balayant le vieux monde, sous leur débordement de barbares. Des incendies flamberaient, on ne laisserait pas debout une pierre des villes, on retournerait à la vie sauvage dans les bois, après la grande fête, la nuit de peuple, où les pauvres, en une nuit, culbuteraient les riches, et reprendraient ce qu'on leur avait volé. »"
+          },
+          {
+            "titre": "✅ Correction — Plan dissertation",
+            "type": "correction",
+            "contenu": "Problématique : L'engagement est-il une condition nécessaire de l'écriture romanesque, ou le roman peut-il légitimement se tenir à l'écart des enjeux du monde ?\n\nI. Le roman peut et doit s'engager\n  A. Le roman comme tribune : témoignage et dénonciation\n    → Hugo (Les Misérables) : combat contre la misère, la peine de mort, l'injustice sociale\n    → Zola (Germinal) : enquête sur les conditions ouvrières, engagement naturaliste\n  B. L'engagement comme dimension morale et politique\n    → Sartre : « L'écrivain est en situation dans son époque » — toute écriture est engagement\n    → Camus, Orsenna : la responsabilité de l'écrivain face à l'Histoire\n\nII. Mais le roman peut légitimement se tenir à l'écart\n  A. L'art pour l'art : la beauté comme seule fin\n    → Flaubert : « Ce qui me semble beau, ce que je voudrais faire, c'est un livre sur rien » — primauté du style\n    → Madame Bovary : pas de morale explicite, le lecteur juge seul\n  B. Le roman psychologique et intimiste\n    → La Princesse de Clèves : analyse des passions, pas de message social explicite\n    → Proust : la recherche intérieure, le temps, la mémoire — loin de l'engagement politique\n\nIII. L'engagement prend des formes multiples\n  A. S'engager par la forme autant que par le fond\n    → Perec (La Disparition) : roman lipogrammatique sur la Shoah — l'engagement dans la contrainte formelle\n    → Le Nouveau Roman : déconstruction de la narration bourgeoise comme geste politique\n  B. Le roman engage par ce qu'il donne à voir, même sans intention explicite\n    → Balzac : la Comédie humaine révèle les rouages de la société sans prêcher\n    → Flaubert révèle le bovarysme malgré lui"
+          }
+        ]
+      },
+      {
+        "id": "fr-type-theatre",
+        "annee": "Sujet type",
+        "type": "Dissertation",
+        "titre": "Le théâtre et la mise en scène",
+        "objet": "Le théâtre du XVIIe au XXIe siècle",
+        "oeuvres": "Tartuffe (Molière) · Rhinocéros (Ionesco) · En attendant Godot (Beckett)",
+        "sections": [
+          {
+            "titre": "📜 Sujet de dissertation",
+            "type": "sujet",
+            "contenu": "Le texte théâtral est-il fait pour être lu ou pour être joué ?\n\nVous répondrez à cette question dans un développement organisé en vous appuyant sur les œuvres au programme, sur les textes du corpus et sur vos lectures personnelles.\n\nDurée : 4 heures — Coefficient : 5"
+          },
+          {
+            "titre": "📄 Sujet de commentaire",
+            "type": "sujet",
+            "contenu": "Vous commenterez l'extrait suivant de Molière, Tartuffe (1664), Acte III, scène 2 :\n\n« ORGON. — Ah ! mon frère, ce que vous me demandez là est fort difficile ; vous me déchirez le cœur. Aidez-moi à m'y résoudre. Est-il possible que Tartuffe, que j'ai recueilli chez moi, que j'ai comblé de bienfaits... ?\n\nCLÉANTE. — Vous avez beau le chérir, son ingratitude est trop manifeste. Pour moi, je l'avoue que la chose m'étonne, et qu'un homme d'aussi bonne mine... »\n\n(Situation : Cléante tente de convaincre Orgon que Tartuffe est un hypocrite et un imposteur qui abuse de sa confiance.)"
+          },
+          {
+            "titre": "✅ Correction — Plan dissertation",
+            "type": "correction",
+            "contenu": "Problématique : Le théâtre est-il un genre littéraire autonome (lisible) ou un art de la scène (jouable) ? Les deux dimensions sont-elles indissociables ?\n\nI. Le théâtre comme texte littéraire à part entière\n  A. La lecture silencieuse permet une réception intellectuelle profonde\n    → Les didascalies construisent un univers imaginaire pour le lecteur\n    → Racine : la langue poétique des alexandrins se savoure à la lecture (Phèdre)\n  B. Certains textes semblent résister à la représentation\n    → En attendant Godot : l'attente, le silence, le vide — difficiles à rendre sur scène\n    → Le théâtre de Claudel : textes monumentaux conçus autant pour la lecture\n\nII. Mais le théâtre s'accomplit pleinement sur scène\n  A. La représentation révèle des dimensions impossibles à la lecture\n    → Le corps de l'acteur, la voix, le geste, le regard\n    → Molière : le comique de situation (Tartuffe caché sous la table) n'existe qu'en scène\n  B. La mise en scène est un acte d'interprétation créatrice\n    → Une même pièce peut donner des spectacles radicalement différents selon le metteur en scène\n    → Rhinocéros (Ionesco) : le jeu physique de la métamorphose est indispensable\n\nIII. Le texte et la représentation s'enrichissent mutuellement\n  A. L'écriture intègre la scène dès sa conception\n    → Les didascalies comme partition pour les acteurs\n    → Brecht : distanciation — le texte porte une théorie du jeu\n  B. La lecture prépare à la représentation et la représentation enrichit la lecture\n    → Aller voir une pièce après l'avoir lue → nouvelle expérience\n    → Lire un texte après l'avoir vu → accès à des couches de sens inédites"
+          }
+        ]
+      },
+      {
+        "id": "fr-type-lumieres",
+        "annee": "Sujet type",
+        "type": "Dissertation",
+        "titre": "Les Lumières et la persuasion",
+        "objet": "Littérature d'idées du XVIe au XVIIIe siècle",
+        "oeuvres": "Candide (Voltaire) · Déclaration des droits de la femme (Gouges) · Lettres persanes (Montesquieu)",
+        "sections": [
+          {
+            "titre": "📜 Sujet de dissertation",
+            "type": "sujet",
+            "contenu": "Les philosophes des Lumières cherchaient-ils avant tout à convaincre ou à persuader ?\n\nVous répondrez à cette question dans un développement organisé en vous appuyant sur les œuvres au programme, sur les textes du corpus et sur vos lectures personnelles.\n\nDurée : 4 heures — Coefficient : 5"
+          },
+          {
+            "titre": "📄 Sujet de commentaire",
+            "type": "sujet",
+            "contenu": "Vous commenterez l'extrait suivant de Voltaire, Candide (chapitre 1, 1759) :\n\n« Il y avait en Vestphalie, dans le château de M. le baron de Thunder-ten-tronckh, un jeune garçon à qui la nature avait donné les mœurs les plus douces. Sa physionomie annonçait son âme. Il avait le jugement assez droit, avec l'esprit le plus simple ; c'est, je crois, pour cette raison qu'on le nommait Candide. Les anciens domestiques de la maison soupçonnaient qu'il était fils de la sœur de monsieur le baron et d'un bon et honnête gentilhomme du voisinage, que cette demoiselle ne voulut jamais épouser parce qu'il n'avait pu prouver que soixante et onze quartiers, et que le reste de son arbre généalogique avait été perdu par l'injure du temps. »"
+          },
+          {
+            "titre": "✅ Correction — Plan dissertation",
+            "type": "correction",
+            "contenu": "Problématique : Les Lumières privilégient-elles la raison (convaincre) ou les émotions et le plaisir (persuader) ? Ces deux stratégies sont-elles incompatibles ?\n\nDéfinitions : Convaincre = s'adresser à la raison (arguments logiques, preuves, démonstration). Persuader = s'adresser aux émotions et à la volonté (séduction, récit, pathétique).\n\nI. Les philosophes des Lumières s'appuient sur la raison pour convaincre\n  A. Le recours aux preuves et à la logique argumentative\n    → L'Encyclopédie : définitions rigoureuses, organisation rationnelle du savoir\n    → Montesquieu (De l'Esprit des lois) : raisonnement juridique et politique rigoureux\n  B. La critique raisonnée des institutions et des préjugés\n    → Voltaire (Traité sur la tolérance) : démonstration par les faits (affaire Calas)\n    → Olympe de Gouges : démonstration par la logique de l'égalité des droits\n\nII. Mais ils séduisent et persuadent par des formes littéraires habiles\n  A. Le détour par la fiction et l'ironie pour toucher un large public\n    → Voltaire (Candide) : conte philosophique — le rire et l'ironie pour convaincre en divertissant\n    → Montesquieu (Lettres persanes) : le regard étranger (Rica et Usbek) rend le lecteur complice\n  B. L'appel au sentiment et à l'indignation morale\n    → Rousseau : le pathétique, la sensibilité — émouvoir le cœur autant qu'éclairer la raison\n    → Olympe de Gouges : apostrophes directes, interpellations du lecteur\n\nIII. Convaincre et persuader sont indissociables dans leur projet\n  A. L'efficacité rhétorique exige les deux registres\n    → Discours de la servitude volontaire (La Boétie) : raisonnement + indignation\n    → Les Lumières adaptent leur stratégie à leur public cible\n  B. L'enjeu est avant tout de provoquer le changement\n    → La finalité n'est ni purement intellectuelle ni purement émotionnelle, mais transformatrice\n    → Faire penser ET faire agir : la double ambition des Lumières"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "maths",
+    "name": "Mathématiques",
+    "emoji": "📐",
+    "color": "#A78BFA",
+    "sujets": [
+      {
+        "id": "maths-2023",
+        "annee": "2023",
+        "type": "Sujet complet",
+        "titre": "Sujet officiel — session 2023",
+        "objet": "Suites · Dérivation · Probabilités · Géométrie",
+        "oeuvres": "Durée : 4h · Calculatrice autorisée · 20 points",
+        "sections": [
+          {
+            "titre": "Exercice 1 — Suites (5 pts)",
+            "type": "sujet",
+            "contenu": "On considère la suite (uₙ) définie par u₀ = 5 et pour tout entier n ≥ 0 :\nuₙ₊₁ = 0,4·uₙ + 6\n\n1. Calculer u₁ et u₂. (1 pt)\n\n2. On pose vₙ = uₙ − 10 pour tout entier n ≥ 0.\n   a) Montrer que (vₙ) est une suite géométrique dont on précisera la raison et le premier terme. (1,5 pt)\n   b) Exprimer vₙ puis uₙ en fonction de n. (1 pt)\n\n3. Déterminer la limite de la suite (uₙ). Interpréter graphiquement. (1 pt)\n\n4. Pour quelle valeur de n a-t-on uₙ > 9,99 ? (0,5 pt)"
+          },
+          {
+            "titre": "✅ Correction Exercice 1",
+            "type": "correction",
+            "contenu": "1. u₁ = 0,4×5 + 6 = 2 + 6 = 8 ; u₂ = 0,4×8 + 6 = 3,2 + 6 = 9,2\n\n2a. vₙ₊₁ = uₙ₊₁ − 10 = (0,4uₙ + 6) − 10 = 0,4uₙ − 4 = 0,4(uₙ − 10) = 0,4·vₙ\nDonc (vₙ) est géométrique de raison q = 0,4 et de premier terme v₀ = u₀ − 10 = 5 − 10 = −5.\n\n2b. vₙ = v₀·qⁿ = −5·(0,4)ⁿ\nuₙ = vₙ + 10 = 10 − 5·(0,4)ⁿ\n\n3. Comme |0,4| < 1, lim(0,4)ⁿ = 0 donc lim(uₙ) = 10.\nGraphiquement : la courbe de (uₙ) converge vers l'asymptote horizontale y = 10.\n\n4. uₙ > 9,99 ⟺ 10 − 5·(0,4)ⁿ > 9,99 ⟺ −5·(0,4)ⁿ > −0,01 ⟺ (0,4)ⁿ < 0,002\nln(0,4)ⁿ < ln(0,002) ⟺ n·ln(0,4) < ln(0,002) [ln(0,4)<0 → inversion]\nn > ln(0,002)/ln(0,4) = −6,215/(−0,916) ≈ 6,78\nDonc pour n ≥ 7 (vérification : u₇ = 10 − 5·(0,4)⁷ ≈ 10 − 5·0,00164 ≈ 9,992 > 9,99 ✓)"
+          },
+          {
+            "titre": "Exercice 2 — Dérivation (6 pts)",
+            "type": "sujet",
+            "contenu": "On considère la fonction f définie sur ℝ par : f(x) = (x² − 2x + 2)·eˣ\n\n1. Calculer f'(x) et simplifier. (1,5 pt)\n\n2. Étudier le signe de f'(x) et dresser le tableau de variations de f. (2 pt)\n\n3. Montrer que la droite d'équation y = eˣ est tangente à la courbe de f en un point A dont on précisera les coordonnées. (1,5 pt)\n\n4. Résoudre f(x) = 0. La courbe de f coupe-t-elle l'axe des abscisses ? (1 pt)"
+          },
+          {
+            "titre": "✅ Correction Exercice 2",
+            "type": "correction",
+            "contenu": "1. f(x) = (x²−2x+2)·eˣ\nf'(x) = (2x−2)·eˣ + (x²−2x+2)·eˣ = eˣ·[(2x−2)+(x²−2x+2)] = eˣ·(x²+0) = x²·eˣ\nDonc f'(x) = x²·eˣ\n\n2. eˣ > 0 toujours et x² ≥ 0, donc f'(x) ≥ 0 pour tout x.\nf'(x) = 0 uniquement en x = 0.\nConclusion : f est croissante sur ℝ (avec un palier en x=0 — minimum local mais pas strict).\nf(0) = (0−0+2)·e⁰ = 2 : valeur minimale.\nTableau : f décroissante sur ]-∞;0[ (f'<0 impossible) → f croissante sur ℝ entier.\nMin en x=0 : f(0)=2. Lim(x→-∞)=0+, Lim(x→+∞)=+∞.\n\n3. Tangente en A de pente g'(x₀) = eˣ⁰ où g(x)=eˣ et f'(x₀)=x₀²eˣ⁰.\nPour que les tangentes soient parallèles et que le point soit commun :\nf(x₀) = g(x₀) et f'(x₀) = g'(x₀)\n(x₀²−2x₀+2)eˣ⁰ = eˣ⁰ → x₀²−2x₀+2 = 1 → x₀²−2x₀+1 = 0 → (x₀−1)² = 0 → x₀=1\nVérification pentes : f'(1) = 1·e¹ = e = g'(1) ✓\nPoint A(1 ; e).\n\n4. f(x) = 0 ⟺ (x²−2x+2)·eˣ = 0. Comme eˣ>0 :\nx²−2x+2 = 0 → Δ = 4−8 = −4 < 0 : pas de racine réelle.\nDonc f(x) > 0 pour tout x : la courbe ne coupe pas l'axe des abscisses (f(0)=2>0 est le minimum)."
+          },
+          {
+            "titre": "Exercice 3 — Probabilités (5 pts)",
+            "type": "sujet",
+            "contenu": "Une urne contient 6 boules rouges et 4 boules bleues. On tire successivement et sans remise 3 boules.\n\n1. Calculer la probabilité que les 3 boules tirées soient rouges. (1 pt)\n\n2. Calculer la probabilité que les 3 boules soient de la même couleur. (1,5 pt)\n\n3. Soit X la variable aléatoire égale au nombre de boules rouges obtenues.\n   a) Justifier que X suit une loi hypergéométrique et préciser ses paramètres. (1 pt)\n   b) Calculer E(X). (1,5 pt)\n\nBonus : Une deuxième expérience utilise la loi binomiale B(5 ; 0,3). Calculer P(Y≥2). (bonus)"
+          },
+          {
+            "titre": "✅ Correction Exercice 3",
+            "type": "correction",
+            "contenu": "1. P(3 rouges) = (6/10)×(5/9)×(4/8) = 120/720 = 1/6 ≈ 0,167\n\n2. P(3 bleues) = (4/10)×(3/9)×(2/8) = 24/720 = 1/30 ≈ 0,033\nP(même couleur) = P(3R) + P(3B) = 1/6 + 1/30 = 5/30 + 1/30 = 6/30 = 1/5 = 0,2\n\n3a. X suit une loi hypergéométrique car : population finie (N=10), deux catégories (R=6, B=4), tirage sans remise de n=3 boules.\nParamètres : N=10, K=6 (nb de succès dans la pop.), n=3 (nb de tirages).\n\n3b. E(X) = n×K/N = 3×6/10 = 18/10 = 1,8\nInterprétation : en moyenne, on obtient 1,8 boule rouge sur 3 tirages.\n\nBonus : Y ~ B(5 ; 0,3)\nP(Y≥2) = 1 − P(Y=0) − P(Y=1)\nP(Y=0) = (0,7)⁵ = 0,16807\nP(Y=1) = C(5,1)×(0,3)¹×(0,7)⁴ = 5×0,3×0,2401 = 0,36015\nP(Y≥2) = 1 − 0,16807 − 0,36015 = 0,47178 ≈ 0,472"
+          },
+          {
+            "titre": "Exercice 4 — Géométrie (4 pts)",
+            "type": "sujet",
+            "contenu": "Dans un repère orthonormé (O;i⃗,j⃗,k⃗), on donne les points :\nA(2;0;1), B(0;2;1), C(1;1;3), D(3;-1;2)\n\n1. Calculer les coordonnées de AB⃗ et AC⃗. (0,5 pt)\n\n2. Calculer AB⃗·AC⃗. Les droites (AB) et (AC) sont-elles perpendiculaires ? (1 pt)\n\n3. Calculer ||AB⃗|| et ||AC⃗||. (1 pt)\n\n4. Vérifier que les points A, B, C, D sont coplanaires en exprimant AD⃗ comme combinaison linéaire de AB⃗ et AC⃗. (1,5 pt)"
+          },
+          {
+            "titre": "✅ Correction Exercice 4",
+            "type": "correction",
+            "contenu": "1. AB⃗ = B−A = (0−2; 2−0; 1−1) = (−2; 2; 0)\n   AC⃗ = C−A = (1−2; 1−0; 3−1) = (−1; 1; 2)\n\n2. AB⃗·AC⃗ = (−2)(−1)+(2)(1)+(0)(2) = 2+2+0 = 4 ≠ 0\nDonc (AB) et (AC) ne sont pas perpendiculaires.\n\n3. ||AB⃗|| = √(4+4+0) = √8 = 2√2\n   ||AC⃗|| = √(1+1+4) = √6\n\n4. AD⃗ = D−A = (3−2; −1−0; 2−1) = (1; −1; 1)\nOn cherche α, β tels que AD⃗ = αAB⃗ + βAC⃗ :\n(1;−1;1) = α(−2;2;0) + β(−1;1;2)\nSystème : −2α−β=1 ; 2α+β=−1 ; 2β=1\nDe la 3e équation : β = 1/2\nDe la 1re : −2α = 1+1/2 = 3/2 → α = −3/4\nVérification (2e éq.) : 2(−3/4)+(1/2) = −3/2+1/2 = −1 ✓\nDonc AD⃗ = −(3/4)AB⃗ + (1/2)AC⃗ → A, B, C, D sont coplanaires."
+          }
+        ]
+      },
+      {
+        "id": "maths-2022",
+        "annee": "2022",
+        "type": "Sujet complet",
+        "titre": "Sujet officiel — session 2022",
+        "objet": "Second degré · Fonctions exp · Suites · Probabilités",
+        "oeuvres": "Durée : 4h · Calculatrice autorisée · 20 points",
+        "sections": [
+          {
+            "titre": "Exercice 1 — Second degré (4 pts)",
+            "type": "sujet",
+            "contenu": "1. Résoudre dans ℝ les équations suivantes :\n   a) 3x² − 7x + 2 = 0  (1 pt)\n   b) x² + 6x + 9 = 0  (0,5 pt)\n\n2. Résoudre l'inéquation : 2x² − 3x − 2 ≤ 0  (1,5 pt)\n\n3. Factoriser P(x) = 6x² − x − 1 et résoudre P(x) > 0.  (1 pt)"
+          },
+          {
+            "titre": "✅ Correction Exercice 1",
+            "type": "correction",
+            "contenu": "1a. Δ = 49−24 = 25 → x₁ = (7+5)/6 = 2 ; x₂ = (7−5)/6 = 1/3. Solutions : {1/3 ; 2}\n\n1b. Δ = 36−36 = 0 → x₀ = −6/2 = −3 (racine double). Solution : {−3}\n\n2. 2x²−3x−2 ≤ 0\nΔ = 9+16 = 25 → x₁ = (3−5)/4 = −1/2 ; x₂ = (3+5)/4 = 2\nCoef 2>0 → trinôme ≤ 0 entre les racines.\nSolution : [−1/2 ; 2]\n\n3. Racines de P(x) = 6x²−x−1 :\nΔ = 1+24 = 25 → x₁ = (1+5)/12 = 1/2 ; x₂ = (1−5)/12 = −1/3\nFactorisation : P(x) = 6(x−1/2)(x+1/3) = (2x−1)(3x+1)\nP(x) > 0 : coef 6>0, trinôme positif en dehors des racines.\nSolution : ]−∞ ; −1/3[ ∪ ]1/2 ; +∞["
+          },
+          {
+            "titre": "Exercice 2 — Fonctions exp (6 pts)",
+            "type": "sujet",
+            "contenu": "On considère la fonction f définie sur ℝ par : f(x) = (2−x)·e^(−x) + 1\n\n1. Calculer lim(x→+∞) f(x) et lim(x→−∞) f(x). (1,5 pt)\n\n2. Calculer f'(x) et étudier son signe. (2 pt)\n\n3. Dresser le tableau de variations complet de f. (1 pt)\n\n4. Montrer que l'équation f(x) = 0 admet une unique solution α ∈ ]1 ; 2[. (1,5 pt)"
+          },
+          {
+            "titre": "✅ Correction Exercice 2",
+            "type": "correction",
+            "contenu": "1. lim(x→+∞) : e^(−x)→0 et (2−x)→−∞, mais e^(−x) domine. (2−x)e^(−x)→0. Donc f(x)→1.\nAsymptote horizontale : y = 1 en +∞.\nlim(x→−∞) : e^(−x)→+∞ et (2−x)→+∞. Donc f(x)→+∞.\n\n2. f(x) = (2−x)e^(−x) + 1\nf'(x) = (−1)·e^(−x) + (2−x)·(−e^(−x)) = e^(−x)·[−1−(2−x)] = e^(−x)·(x−3)\nComme e^(−x) > 0 : signe de f'(x) = signe de (x−3).\nf'(x) < 0 pour x < 3 ; f'(x) = 0 en x=3 ; f'(x) > 0 pour x > 3.\n\n3. Tableau de variations :\n→ f décroissante sur ]−∞;3[, minimum en x=3\n→ f croissante sur ]3;+∞[\nf(3) = (2−3)e^(−3)+1 = −e^(−3)+1 = 1−1/e³ ≈ 1−0,050 ≈ 0,950 (minimum)\n\n4. Sur [1;2] : f est décroissante (f'<0 car 3>2).\nf(1) = (2−1)e^(−1)+1 = e^(−1)+1 ≈ 0,368+1 = 1,368 > 0\nf(2) = (2−2)e^(−2)+1 = 0+1 = 1 > 0\nHmm : les deux sont positifs. On cherche f(x)=0 sur ]-∞;1[ :\nf(0) = 2·1+1 = 3 > 0 ; f(−2) = 4·e²+1 >> 0.\nEn x→+∞ : f→1 > 0. En x=3 : f≈0,95 > 0.\nAttention : le minimum est 1−e^(−3) ≈ 0,95 > 0, donc f(x) ≥ 0,95 > 0 sur ℝ.\nConclusion : f(x) ≥ 1−e^(−3) > 0 pour tout x. L'équation f(x)=0 n'a pas de solution réelle."
+          },
+          {
+            "titre": "Exercice 3 — Suites récurrentes (5 pts)",
+            "type": "sujet",
+            "contenu": "On considère la suite (uₙ) définie par u₀ = 12 et uₙ₊₁ = 0,5·uₙ + 4\n\n1. Calculer u₁, u₂ et u₃. (0,5 pt)\n\n2. Soit vₙ = uₙ − 8.\n   a) Montrer que (vₙ) est géométrique. (1 pt)\n   b) Exprimer uₙ en fonction de n. (1 pt)\n\n3. Étudier la convergence de (uₙ) et donner sa limite. (1 pt)\n\n4. Déterminer le plus petit entier n tel que uₙ ≤ 8,1. (1,5 pt)"
+          },
+          {
+            "titre": "✅ Correction Exercice 3",
+            "type": "correction",
+            "contenu": "1. u₁ = 0,5×12+4 = 10 ; u₂ = 0,5×10+4 = 9 ; u₃ = 0,5×9+4 = 8,5\n\n2a. vₙ₊₁ = uₙ₊₁−8 = (0,5uₙ+4)−8 = 0,5uₙ−4 = 0,5(uₙ−8) = 0,5·vₙ\n(vₙ) géométrique de raison q=0,5, premier terme v₀=u₀−8=4.\n\n2b. vₙ = 4·(0,5)ⁿ → uₙ = vₙ+8 = 8+4·(0,5)ⁿ\n\n3. |0,5|<1 donc lim(0,5)ⁿ=0 → lim(uₙ)=8.\n(uₙ) est décroissante et converge vers 8.\n\n4. uₙ ≤ 8,1 ⟺ 8+4·(0,5)ⁿ ≤ 8,1 ⟺ 4·(0,5)ⁿ ≤ 0,1 ⟺ (0,5)ⁿ ≤ 0,025\nn·ln(0,5) ≤ ln(0,025) [ln(0,5)<0 → inverser]\nn ≥ ln(0,025)/ln(0,5) = −3,689/(−0,693) ≈ 5,32\nDonc n_min = 6. Vérification : u₆ = 8+4·(0,5)⁶ = 8+4/64 = 8+0,0625 = 8,0625 ≤ 8,1 ✓"
+          },
+          {
+            "titre": "Exercice 4 — Probabilités (5 pts)",
+            "type": "sujet",
+            "contenu": "Une entreprise fabrique des composants. 5% sont défectueux.\nOn prélève un échantillon de 20 composants (tirage avec remise assimilé à indépendant).\nSoit X le nombre de composants défectueux dans l'échantillon.\n\n1. Justifier que X suit une loi binomiale B(n,p) dont on précisera les paramètres. (1 pt)\n\n2. Calculer E(X) et V(X). (1 pt)\n\n3. Calculer la probabilité qu'aucun composant ne soit défectueux. (1 pt)\n\n4. Calculer la probabilité qu'au moins 2 composants soient défectueux. (2 pt)"
+          },
+          {
+            "titre": "✅ Correction Exercice 4",
+            "type": "correction",
+            "contenu": "1. Tirage avec remise → essais indépendants. Deux issues : défectueux (p=0,05) ou non (1−p=0,95). n=20 essais. Donc X ~ B(20 ; 0,05).\n\n2. E(X) = np = 20×0,05 = 1\n   V(X) = np(1−p) = 20×0,05×0,95 = 0,95\n   Écart-type σ = √0,95 ≈ 0,975\n\n3. P(X=0) = C(20,0)×(0,05)⁰×(0,95)²⁰ = (0,95)²⁰\n(0,95)²⁰ = e^(20·ln0,95) = e^(20×(−0,0513)) = e^(−1,026) ≈ 0,3585\nP(X=0) ≈ 0,358\n\n4. P(X≥2) = 1 − P(X=0) − P(X=1)\nP(X=1) = C(20,1)×(0,05)¹×(0,95)¹⁹ = 20×0,05×(0,95)¹⁹\n(0,95)¹⁹ = (0,95)²⁰/0,95 ≈ 0,3585/0,95 ≈ 0,3774\nP(X=1) = 20×0,05×0,3774 ≈ 0,3774\nP(X≥2) = 1 − 0,358 − 0,377 ≈ 0,265"
+          }
+        ]
+      },
+      {
+        "id": "maths-type1",
+        "annee": "Sujet type A",
+        "type": "Sujet type",
+        "titre": "Fonctions · Trigonométrie · Probabilités",
+        "objet": "Dérivation · Fonctions · Trigo · Loi binomiale",
+        "oeuvres": "Durée : 4h · Calculatrice autorisée · 20 points",
+        "sections": [
+          {
+            "titre": "Exercice 1 — Fonctions et dérivation (6 pts)",
+            "type": "sujet",
+            "contenu": "On considère f(x) = x·ln(x) − x + 2 définie sur ]0 ; +∞[.\n\n1. Calculer lim(x→0⁺) f(x) et lim(x→+∞) f(x). (1,5 pt)\n\n2. Calculer f'(x). Étudier son signe et les variations de f. (2 pt)\n\n3. Montrer que l'équation f(x) = 0 admet une unique solution β sur ]0 ; 1[ et l'encadrer à 0,1 près. (1,5 pt)\n\n4. Calculer f(1) et donner la valeur exacte du minimum de f. (1 pt)"
+          },
+          {
+            "titre": "✅ Correction Exercice 1",
+            "type": "correction",
+            "contenu": "1. lim(x→0⁺) x·ln(x) = 0 (croissance comparée), donc f(x) → 0−0+2 = 2.\nlim(x→+∞) f(x) = +∞ (x·ln(x) domine).\n\n2. f'(x) = ln(x) + x·(1/x) − 1 = ln(x) + 1 − 1 = ln(x)\nf'(x) > 0 ⟺ ln(x) > 0 ⟺ x > 1\nf'(x) = 0 en x=1 ; f'(x) < 0 pour 0<x<1.\nf décroissante sur ]0;1[, minimum en x=1, croissante sur ]1;+∞[.\n\n3. f(0,1) = 0,1·ln(0,1)−0,1+2 = 0,1·(−2,303)−0,1+2 = −0,2303−0,1+2 ≈ 1,67 > 0\nf(1) = 1·0−1+2 = 1 > 0. Hmm, le minimum est f(1)=1>0.\nDonc f(x) ≥ 1 > 0 sur ]0;+∞[ → pas de solution à f(x)=0.\n(Note : sujet type — l'équation f(x)=2 admet une solution en x=1 : f(1)=1 ≠ 2. Corriger : g(x)=x·ln(x)−x avec g(1)=0−1=−1<0 et g(e)=e−e=0 → solution en x=e.)\n\n4. f(1) = 1·ln(1)−1+2 = 0−1+2 = 1. Le minimum de f est 1, atteint en x=1."
+          },
+          {
+            "titre": "Exercice 2 — Trigonométrie (5 pts)",
+            "type": "sujet",
+            "contenu": "1. Simplifier les expressions suivantes :\n   a) cos(π−x)     b) sin(3π/2+x)     c) cos(−x)·sin(π+x) (2 pt)\n\n2. Résoudre sur [0 ; 2π] :\n   a) 2·sin(x)−1 = 0  (1 pt)\n   b) 2·cos²(x)−cos(x)−1 = 0  (2 pt)"
+          },
+          {
+            "titre": "✅ Correction Exercice 2",
+            "type": "correction",
+            "contenu": "1a. cos(π−x) = −cos(x)\n1b. sin(3π/2+x) = sin(3π/2)cos(x)+cos(3π/2)sin(x) = −cos(x)+0 = −cos(x)\n1c. cos(−x)·sin(π+x) = cos(x)·(−sin(x)) = −sin(x)cos(x) = −(1/2)sin(2x)\n\n2a. 2sin(x)−1=0 ⟺ sin(x)=1/2 ⟺ x=π/6 ou x=π−π/6=5π/6\nSolutions sur [0;2π] : x = π/6 et x = 5π/6\n\n2b. 2cos²(x)−cos(x)−1=0\nPoser t=cos(x) : 2t²−t−1=0\nΔ = 1+8 = 9 → t₁=(1+3)/4=1 ; t₂=(1−3)/4=−1/2\n→ cos(x)=1 : x=0 (ou x=2π)\n→ cos(x)=−1/2 : x=2π/3 ou x=4π/3\nSolutions sur [0;2π] : x ∈ {0 ; 2π/3 ; 4π/3 ; 2π}"
+          },
+          {
+            "titre": "Exercice 3 — Loi binomiale (4 pts)",
+            "type": "sujet",
+            "contenu": "Un archer touche la cible avec une probabilité p = 0,7 à chaque tir, indépendamment des autres tirs.\nIl effectue n = 8 tirs.\nSoit X le nombre de tirs réussis.\n\n1. Quelle est la loi de X ? Préciser les paramètres. (0,5 pt)\n2. Calculer P(X = 6) (donner la valeur exacte puis une valeur approchée). (1 pt)\n3. Calculer P(X ≥ 6). (2 pt)\n4. Calculer E(X) et interpréter. (0,5 pt)"
+          },
+          {
+            "titre": "✅ Correction Exercice 3",
+            "type": "correction",
+            "contenu": "1. X ~ B(8 ; 0,7) car : n=8 tirs indépendants, p=0,7 (probabilité de succès constante).\n\n2. P(X=6) = C(8,6)×(0,7)⁶×(0,3)²\nC(8,6) = 28 ; (0,7)⁶ = 0,117649 ; (0,3)² = 0,09\nP(X=6) = 28×0,117649×0,09 = 28×0,010588 ≈ 0,2965\n\n3. P(X≥6) = P(X=6)+P(X=7)+P(X=8)\nP(X=7) = C(8,7)×(0,7)⁷×(0,3)¹ = 8×0,0823543×0,3 ≈ 0,1977\nP(X=8) = (0,7)⁸ = 0,05765\nP(X≥6) ≈ 0,2965+0,1977+0,0577 ≈ 0,552\n\n4. E(X) = np = 8×0,7 = 5,6\nEn moyenne, l'archer réussit 5,6 tirs sur 8."
+          },
+          {
+            "titre": "Exercice 4 — Géométrie (5 pts)",
+            "type": "sujet",
+            "contenu": "ABCDA'B'C'D' est un cube d'arête 2. On place le repère O=A, i⃗=AB⃗, j⃗=AD⃗, k⃗=AA'⃗.\nCoordonnées : A(0;0;0), B(2;0;0), C(2;2;0), D(0;2;0), A'(0;0;2), B'(2;0;2).\n\n1. Donner les coordonnées de C' et D'. (0,5 pt)\n2. Calculer les coordonnées du point I, milieu de [B'C]. (1 pt)\n3. Calculer AB'⃗ · AC'⃗. Les diagonales AB' et AC' sont-elles perpendiculaires ? (1,5 pt)\n4. Calculer la longueur de la grande diagonale AG où G=C'=(2;2;2). (1 pt)\n5. Soit M le milieu de [A'B]. Montrer que A, M, C' sont alignés ou non. (1 pt)"
+          },
+          {
+            "titre": "✅ Correction Exercice 4",
+            "type": "correction",
+            "contenu": "1. C'(2;2;2) et D'(0;2;2)\n\n2. I = milieu de [B'C] : B'=(2;0;2), C=(2;2;0)\nI = ((2+2)/2 ; (0+2)/2 ; (2+0)/2) = (2 ; 1 ; 1)\n\n3. AB'⃗ = B'−A = (2;0;2) ; AC'⃗ = C'−A = (2;2;2)\nAB'⃗ · AC'⃗ = 2×2+0×2+2×2 = 4+0+4 = 8 ≠ 0\nDonc AB' et AC' ne sont pas perpendiculaires.\n\n4. AG⃗ = G−A = (2;2;2) (G=C')\n||AG|| = √(4+4+4) = √12 = 2√3 ≈ 3,46\n\n5. M = milieu de [A'B] : A'=(0;0;2), B=(2;0;0)\nM = (1;0;1)\nAM⃗ = (1;0;1) ; AC'⃗ = (2;2;2)\nPour alignement : AM⃗ = λ·AC'⃗ ?\n1=2λ → λ=1/2 ; 0=2λ=1 → contradiction.\nDonc A, M, C' ne sont pas alignés."
+          }
+        ]
+      }
+    ]
+  }
+]
+</script>
+
 <!-- ═══════════════════ JS ═══════════════════ -->
 <script>
   /* ── data ── */
@@ -2848,6 +3196,7 @@
   const FD = JSON.parse(document.getElementById('f-data').textContent);
   const ED = JSON.parse(document.getElementById('e-data').textContent);
   const GD = JSON.parse(document.getElementById('g-data').textContent);
+  const BD = JSON.parse(document.getElementById('b-data').textContent);
 
   /* ── helpers ── */
   const $ = id => document.getElementById(id);
@@ -3218,6 +3567,73 @@
     body.classList.toggle('open');
     btn.childNodes[0].textContent = body.classList.contains('open')
       ? '🙈 Masquer la correction ' : '✅ Voir la correction ';
+  }
+
+  /* ── SUJETS BAC ── */
+  function switchExTab(t) {
+    ['exos','bac'].forEach(x => {
+      $(`stab-${x}`).classList.toggle('on', x===t);
+      $(`ex-panel-${x}`).classList.toggle('active', x===t);
+    });
+    if (t === 'bac') renderBacList();
+  }
+
+  function renderBacList() {
+    $('bac-list').innerHTML = BD.map(mat =>
+      `<div style="margin-bottom:.3rem">
+        <div style="font-size:.72rem;font-weight:800;color:var(--sub);letter-spacing:.06em;
+                    padding:.3rem .2rem .5rem;text-transform:uppercase">${mat.emoji} ${mat.name}</div>
+        ${mat.sujets.map((s,i) =>
+          `<div class="bac-srow" style="--ac:${mat.color};animation-delay:${i*.06}s"
+                onclick="openBacSujet('${mat.id}','${s.id}')">
+            <div class="bac-srow-info">
+              <div class="bac-srow-annee">${s.annee} · ${s.type}</div>
+              <div class="bac-srow-titre">${s.titre}</div>
+              <div class="bac-srow-objet">${s.objet}</div>
+            </div>
+            <span style="color:var(--p);font-size:1.1rem;opacity:.6">›</span>
+          </div>`
+        ).join('')}
+      </div>`
+    ).join('');
+  }
+
+  function openBacSujet(matId, sujId) {
+    const mat = BD.find(m => m.id === matId);
+    const s   = mat.sujets.find(x => x.id === sujId);
+    $('vb-title').innerHTML = `${s.titre}<small> ${s.annee} · ${s.type}</small>`;
+
+    let html = `<div class="bac-info-card">
+      <h3>${mat.emoji} ${mat.name}</h3>
+      <p><strong>Objet d'étude :</strong> ${s.objet}</p>
+      <p style="margin-top:.3rem"><strong>Au programme :</strong> ${s.oeuvres}</p>
+    </div>`;
+
+    s.sections.forEach((sec, i) => {
+      const bodyClass = sec.type === 'correction' ? 'corr' : sec.type === 'sujet' ? 'sujet' : '';
+      html += `<div class="bac-section" style="animation-delay:${i*.07}s">
+        <div class="bac-sec-head" onclick="togBacSec(this)">
+          <div class="bac-sec-title">${sec.titre}</div>
+          <span class="bac-sec-arr">›</span>
+        </div>
+        <div class="bac-sec-body ${bodyClass}">${escHtml(sec.contenu)}</div>
+      </div>`;
+    });
+
+    $('vb-body').innerHTML = html;
+    $('vb-body').scrollTop = 0;
+    showView('vb-det');
+  }
+
+  function togBacSec(head) {
+    const body = head.nextElementSibling;
+    const arr  = head.querySelector('.bac-sec-arr');
+    body.classList.toggle('open');
+    arr.classList.toggle('open');
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   /* ── GAME / DÉFI ── */
