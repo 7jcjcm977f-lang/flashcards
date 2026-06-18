@@ -943,44 +943,8 @@
       </div>
     </div>
 
-    <!-- Défi panel -->
-    <div id="tp-defi" class="tp">
-      <div class="page-header">
-        <h1>🎮 Mode Défi</h1>
-        <p>Chrono · Points · Défie tes amis</p>
-      </div>
-      <div class="scroll-body">
-        <div class="defi-setup">
-          <div style="background:#1e293b;border-radius:16px;padding:1rem;">
-            <div style="font-size:1rem;font-weight:800;color:#f1f5f9;margin-bottom:.4rem">Comment jouer ?</div>
-            <div style="font-size:.82rem;color:#94a3b8;line-height:1.6">
-              Réponds le plus vite possible aux QCM. Plus tu es rapide, plus tu gagnes de points.
-              Enchaîne les bonnes réponses pour multiplier ton score 🔥
-            </div>
-          </div>
-          <div>
-            <div style="font-size:.8rem;font-weight:700;color:#64748b;margin-bottom:.5rem;padding-left:.2rem">MATIÈRE</div>
-            <div class="defi-option-row" id="defi-subjects"></div>
-          </div>
-          <div>
-            <div style="font-size:.8rem;font-weight:700;color:#64748b;margin-bottom:.5rem;padding-left:.2rem">DURÉE</div>
-            <div class="defi-option-row">
-              <button class="defi-option" onclick="selDur(30)" id="dur-30">⚡ 30s</button>
-              <button class="defi-option sel" onclick="selDur(60)" id="dur-60">⏱ 60s</button>
-              <button class="defi-option" onclick="selDur(90)" id="dur-90">🕐 90s</button>
-              <button class="defi-option" onclick="selDur(120)" id="dur-120">🕑 2min</button>
-            </div>
-          </div>
-          <div class="ge-ranking" style="background:#fff;" id="home-ranking">
-            <h3 style="color:#64748b">🏆 Meilleurs scores</h3>
-            <div id="home-ranking-body" style="color:#94a3b8;font-size:.85rem;text-align:center;padding:.5rem 0">
-              Aucun score encore
-            </div>
-          </div>
-          <button class="defi-btn-start" onclick="startGame()">⚡ Lancer le défi !</button>
-        </div>
-      </div>
-    </div>
+    <!-- Défi panel — vide, contenu déplacé dans #vd -->
+    <div id="tp-defi" class="tp"></div>
 
   </div><!-- .tab-panels -->
 
@@ -1145,6 +1109,46 @@
 </div>
 
 <!-- vue défi - jeu -->
+<!-- ═══════════════════ DÉFI SETUP ═══════════════════ -->
+<div id="vd" class="view">
+  <div class="qnav">
+    <button class="btn-back" onclick="showView('vh',true);switchTab('quiz')">‹</button>
+    <h2>🎮 Mode Défi</h2>
+    <div style="width:38px"></div>
+  </div>
+  <div class="escroll">
+    <div class="defi-setup">
+      <div style="background:#1e293b;border-radius:16px;padding:1rem;">
+        <div style="font-size:1rem;font-weight:800;color:#f1f5f9;margin-bottom:.4rem">Comment jouer ?</div>
+        <div style="font-size:.82rem;color:#94a3b8;line-height:1.6">
+          Réponds le plus vite possible aux QCM. Plus tu es rapide, plus tu gagnes de points.
+          Enchaîne les bonnes réponses pour multiplier ton score 🔥
+        </div>
+      </div>
+      <div>
+        <div style="font-size:.8rem;font-weight:700;color:#64748b;margin-bottom:.5rem;padding-left:.2rem">MATIÈRE</div>
+        <div class="defi-option-row" id="defi-subjects"></div>
+      </div>
+      <div>
+        <div style="font-size:.8rem;font-weight:700;color:#64748b;margin-bottom:.5rem;padding-left:.2rem">DURÉE</div>
+        <div class="defi-option-row">
+          <button class="defi-option" onclick="selDur(30)" id="dur-30">⚡ 30s</button>
+          <button class="defi-option sel" onclick="selDur(60)" id="dur-60">⏱ 60s</button>
+          <button class="defi-option" onclick="selDur(90)" id="dur-90">🕐 90s</button>
+          <button class="defi-option" onclick="selDur(120)" id="dur-120">🕑 2min</button>
+        </div>
+      </div>
+      <div class="ge-ranking" style="background:var(--card);" id="home-ranking">
+        <h3 style="color:#64748b">🏆 Meilleurs scores</h3>
+        <div id="home-ranking-body" style="color:#94a3b8;font-size:.85rem;text-align:center;padding:.5rem 0">
+          Aucun score encore
+        </div>
+      </div>
+      <button class="defi-btn-start" onclick="startGame()">⚡ Lancer le défi !</button>
+    </div>
+  </div>
+</div>
+
 <div id="vg-play" class="view">
   <div class="g-header">
     <div class="g-timer-ring">
@@ -4541,16 +4545,22 @@
     curTab = t;
     document.querySelectorAll('.tp').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tb').forEach(b => b.classList.remove('on'));
+    if (t === 'defi') {
+      $('tb-defi').classList.add('on');
+      showView('vd');
+      initGameTab();
+      return;
+    }
     $(`tp-${t}`).classList.add('active');
     $(`tb-${t}`).classList.add('on');
-    if (t === 'defi') { initGameTab(); }
   }
 
   /* ── HOME ── */
   function goHome() {
     st = mkState();
     showView('vh', true);
-    switchTab(curTab);
+    if (curTab !== 'defi') switchTab(curTab);
+    else switchTab('quiz');
   }
 
   function mkState() {
@@ -5188,7 +5198,7 @@
     else navigator.clipboard?.writeText(text).then(() => alert('Score copié !'));
   }
 
-  function replayGame() { showView('vh', true); switchTab('defi'); }
+  function replayGame() { showView('vd', true); initGameTab(); }
 
   /* ── DARK MODE ── */
   function toggleDark() {
