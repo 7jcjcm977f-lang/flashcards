@@ -887,6 +887,60 @@
     @keyframes rippleAnim {
       to { transform: scale(4); opacity: 0; }
     }
+
+    /* ── STREAK ── */
+    .streak-chip {
+      display: inline-flex; align-items: center; gap: .3rem;
+      background: rgba(255,255,255,.22); color: #fff;
+      font-size: .8rem; font-weight: 800;
+      padding: .22rem .75rem; border-radius: 99px;
+      margin-top: .45rem;
+    }
+
+    /* ── EXAMEN BLANC card ── */
+    .exam-card {
+      background: linear-gradient(135deg,#1e293b,#0f172a);
+      border-radius: 20px; padding: 1rem 1.15rem;
+      display: flex; align-items: center; gap: .9rem;
+      min-height: 80px; cursor: pointer;
+      box-shadow: 0 6px 22px rgba(0,0,0,.28);
+      position: relative; overflow: hidden; color: #fff;
+      transition: transform .15s;
+    }
+    .exam-card:active { transform: scale(.96); }
+    .exam-card::before {
+      content: ''; position: absolute;
+      top: -25px; right: -20px;
+      width: 90px; height: 90px; border-radius: 50%;
+      background: rgba(255,255,255,.05); pointer-events: none;
+    }
+    .exam-card-info { flex: 1; }
+    .exam-card-name { font-weight: 700; font-size: .95rem; }
+    .exam-card-sub  { font-size: .78rem; color: rgba(255,255,255,.65); margin-top: .1rem; }
+    .exam-card-badge {
+      background: rgba(255,255,255,.15); color: #fff;
+      font-size: .72rem; font-weight: 800;
+      padding: .25rem .65rem; border-radius: 99px; flex-shrink: 0;
+    }
+
+    /* ── EXAM TIMER ── */
+    .exam-timer {
+      font-size: 1.2rem; font-weight: 900; color: #fff;
+      letter-spacing: .04em; font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+    .exam-timer.warn   { color: #fbbf24; }
+    .exam-timer.danger { color: #ef4444; animation: pulse 1s ease-in-out infinite; }
+
+    /* ── EXAM RESULT breakdown ── */
+    .exam-sub-row {
+      display: flex; align-items: center; gap: .65rem;
+      padding: .55rem 0; border-bottom: 1px solid var(--bdr);
+    }
+    .exam-sub-row:last-child { border-bottom: none; }
+    .exam-sub-bar-wrap { flex:1; height:6px; background:var(--bdr); border-radius:99px; overflow:hidden; }
+    .exam-sub-bar { height:100%; border-radius:99px; transition: width .6s ease; }
+    .exam-sub-pct { font-size:.8rem; font-weight:700; color:var(--sub); min-width:34px; text-align:right; }
   </style>
 </head>
 <body>
@@ -902,10 +956,19 @@
     <div id="tp-quiz" class="tp active">
       <div class="page-header">
         <h1>🚀 Alexrevision</h1>
-        <p>Choisissez une matière ou révisez tout</p>
+        <div id="streak-chip" class="streak-chip" style="display:none">🔥 <span id="streak-num">1</span> jour de suite</div>
+        <p id="home-sub" style="margin-top:.15rem">Choisissez une matière ou révisez tout</p>
       </div>
       <div class="scroll-body">
         <button class="btn-all" onclick="startQuizAll()">🎯 Tout réviser — toutes les matières</button>
+        <div class="exam-card" onclick="startExam()">
+          <span style="font-size:2rem;flex-shrink:0">📝</span>
+          <div class="exam-card-info">
+            <div class="exam-card-name">Examen Blanc</div>
+            <div class="exam-card-sub">3h chrono · toutes matières · score détaillé</div>
+          </div>
+          <span class="exam-card-badge">3h</span>
+        </div>
         <div id="quiz-list"></div>
       </div>
     </div>
@@ -1109,6 +1172,72 @@
 </div>
 
 <!-- vue défi - jeu -->
+<!-- ═══════════════════ EXAMEN BLANC ═══════════════════ -->
+<div id="vexam" class="view">
+  <div class="qnav">
+    <button class="btn-back" onclick="stopExam()">✕</button>
+    <h2 style="flex:1;text-align:center">📝 Examen Blanc</h2>
+    <div id="exam-timer" class="exam-timer">3:00:00</div>
+  </div>
+  <div class="pbar"><div class="pfill" id="exam-time-bar" style="width:100%"></div></div>
+  <div class="qscroll">
+    <div class="rlabel" id="exam-round-lbl"></div>
+    <div class="card-wrap">
+      <div class="card" id="exam-card">
+        <div class="card-lbl" id="exam-card-subject" style="font-size:.7rem;font-weight:700;margin-bottom:.4rem"></div>
+        <div class="card-q" id="exam-cq"></div>
+        <hr class="card-hr" id="exam-hr" style="display:none">
+        <div class="card-a" id="exam-ca" style="display:none"></div>
+      </div>
+    </div>
+    <div id="exam-sec-input">
+      <textarea class="ans-ta" id="exam-ta" placeholder="Ta réponse…" rows="3"></textarea>
+      <button class="btn btn-p" onclick="examShowCorr()">✏️ Voir la correction</button>
+    </div>
+    <div id="exam-sec-corr" style="display:none">
+      <div class="cblock cblock-u">
+        <div style="font-size:.72rem;font-weight:700;color:var(--sub);margin-bottom:.35rem">TA RÉPONSE</div>
+        <div id="exam-u-ans" style="font-size:.88rem;line-height:1.7"></div>
+      </div>
+      <div class="cblock" style="background:var(--pl);border:1.5px solid var(--bdr);font-size:.75rem;line-height:1.6" id="exam-kw-row"></div>
+      <div class="assess-wrap">
+        <div class="btn-row">
+          <button class="btn btn-r" onclick="examMark(false)">✗ Raté</button>
+          <button class="btn btn-g" onclick="examMark(true)">✓ Réussi</button>
+        </div>
+        <button class="btn btn-sk" onclick="examMark(false)">→ Passer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ EXAMEN RÉSULTAT ═══════════════════ -->
+<div id="vexam-result" class="view">
+  <div class="qnav">
+    <button class="btn-back" onclick="showView('vh',true);switchTab('quiz')">‹</button>
+    <h2>📊 Résultats</h2>
+    <div style="width:38px"></div>
+  </div>
+  <div class="escroll">
+    <div class="rcard" style="border-radius:20px">
+      <div class="r-emoji" id="exam-r-em">🎓</div>
+      <div class="r-title" id="exam-r-ti">Examen terminé</div>
+      <div class="r-circle" id="exam-r-circle" style="margin:1rem auto">
+        <div class="r-score" id="exam-r-sc">0/0</div>
+      </div>
+      <div class="r-msg" id="exam-r-msg"></div>
+      <div style="background:var(--bg);border-radius:12px;padding:.9rem 1rem;margin-bottom:1rem;text-align:left">
+        <div style="font-size:.72rem;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem">Par matière</div>
+        <div id="exam-sub-breakdown"></div>
+      </div>
+      <div class="r-actions">
+        <button class="btn btn-p" onclick="startExam()">🔄 Nouvel examen</button>
+        <button class="btn btn-sec" onclick="showView('vh',true);switchTab('quiz')">← Accueil</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════════ DÉFI SETUP ═══════════════════ -->
 <div id="vd" class="view">
   <div class="qnav">
@@ -5257,6 +5386,141 @@
     setTimeout(() => r.remove(), 600);
   });
 
+  /* ── STREAK ── */
+  function initStreak() {
+    const today = new Date().toISOString().slice(0, 10);
+    const last  = localStorage.getItem('streak_date') || '';
+    let   count = parseInt(localStorage.getItem('streak_count') || '0', 10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    if (last === today) {
+      // already counted today — keep count
+    } else if (last === yesterday) {
+      count += 1;
+      localStorage.setItem('streak_date',  today);
+      localStorage.setItem('streak_count', count);
+    } else {
+      count = 1;
+      localStorage.setItem('streak_date',  today);
+      localStorage.setItem('streak_count', count);
+    }
+    const chip = $('streak-chip');
+    const num  = $('streak-num');
+    if (count >= 2) {
+      num.textContent = count;
+      chip.style.display = 'inline-flex';
+    }
+  }
+
+  /* ── EXAMEN BLANC ── */
+  let examSt = null;
+  let examTimerHandle = null;
+
+  function startExam() {
+    if (examTimerHandle) { clearInterval(examTimerHandle); examTimerHandle = null; }
+    const allCards = shuffle(QD.decks.flatMap(d =>
+      d.cards.map(c => Object.assign({}, c, { deckId: d.id, deckName: d.name, deckColor: d.color, deckEmoji: d.emoji }))
+    ));
+    examSt = {
+      queue:   allCards,
+      idx:     0,
+      total:   allCards.length,
+      results: {},  // deckId -> { correct, total }
+      secLeft: 10800,
+      done:    false
+    };
+    QD.decks.forEach(d => { examSt.results[d.id] = { correct: 0, total: 0, name: d.name, emoji: d.emoji, color: d.color }; });
+    showView('vexam');
+    renderExamCard();
+    examTimerHandle = setInterval(updateExamTimer, 1000);
+  }
+
+  function updateExamTimer() {
+    if (!examSt || examSt.done) return;
+    examSt.secLeft--;
+    const h = Math.floor(examSt.secLeft / 3600);
+    const m = Math.floor((examSt.secLeft % 3600) / 60);
+    const s = examSt.secLeft % 60;
+    const label = `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const el = $('exam-timer');
+    el.textContent = label;
+    el.className = 'exam-timer' +
+      (examSt.secLeft < 600 ? ' danger' : examSt.secLeft < 1800 ? ' warn' : '');
+    const pct = examSt.secLeft / 10800 * 100;
+    $('exam-time-bar').style.width = pct + '%';
+    if (examSt.secLeft <= 0) stopExam();
+  }
+
+  function renderExamCard() {
+    const card = examSt.queue[examSt.idx];
+    $('exam-round-lbl').textContent = `Question ${examSt.idx + 1} / ${examSt.total}`;
+    $('exam-card-subject').textContent = `${card.deckEmoji} ${card.deckName}`;
+    $('exam-cq').textContent = card.q;
+    $('exam-ca').textContent = card.a;
+    $('exam-hr').style.display  = 'none';
+    $('exam-ca').style.display  = 'none';
+    $('exam-sec-input').style.display  = '';
+    $('exam-sec-corr').style.display   = 'none';
+    const ta = $('exam-ta');
+    ta.value = '';
+    // keywords hint
+    const kw = card.kw || card.keywords || [];
+    $('exam-kw-row').style.display = kw.length ? '' : 'none';
+    if (kw.length) $('exam-kw-row').innerHTML = '<b>Mots-clés :</b> ' + kw.join(' · ');
+  }
+
+  function examShowCorr() {
+    $('exam-sec-input').style.display = 'none';
+    $('exam-sec-corr').style.display  = '';
+    $('exam-hr').style.display        = '';
+    $('exam-ca').style.display        = '';
+    $('exam-u-ans').textContent = $('exam-ta').value.trim() || '(pas de réponse)';
+  }
+
+  function examMark(ok) {
+    const card = examSt.queue[examSt.idx];
+    examSt.results[card.deckId].total++;
+    if (ok) examSt.results[card.deckId].correct++;
+    examSt.idx++;
+    if (examSt.idx >= examSt.total) { stopExam(); return; }
+    renderExamCard();
+  }
+
+  function stopExam() {
+    examSt.done = true;
+    if (examTimerHandle) { clearInterval(examTimerHandle); examTimerHandle = null; }
+    showExamResult();
+  }
+
+  function showExamResult() {
+    const res = examSt.results;
+    let totalC = 0, totalT = 0;
+    Object.values(res).forEach(r => { totalC += r.correct; totalT += r.total; });
+    const pct = totalT ? Math.round(totalC / totalT * 100) : 0;
+    $('exam-r-sc').textContent = `${totalC}/${totalT}`;
+    let em = '😔', msg = 'Continue à réviser, tu vas progresser !';
+    if (pct >= 80) { em = '🏆'; msg = 'Excellent ! Tu maîtrises ton programme.'; }
+    else if (pct >= 60) { em = '🎓'; msg = 'Bon résultat ! Quelques points à revoir.'; }
+    else if (pct >= 40) { em = '📚'; msg = 'Continue les révisions, tu t\'améliores.'; }
+    $('exam-r-em').textContent = em;
+    $('exam-r-ti').textContent = `${pct}% de réussite`;
+    $('exam-r-msg').textContent = msg;
+    const bd = $('exam-sub-breakdown');
+    bd.innerHTML = Object.values(res).map(r => {
+      const p = r.total ? Math.round(r.correct / r.total * 100) : 0;
+      const barColor = p >= 60 ? '#16a34a' : p >= 40 ? '#d97706' : '#dc2626';
+      return `<div class="exam-sub-row">
+        <span style="font-size:1.1rem;flex-shrink:0">${r.emoji}</span>
+        <span style="flex:1;font-size:.82rem;font-weight:600">${r.name}</span>
+        <div class="exam-sub-bar-wrap"><div class="exam-sub-bar" style="width:${p}%;background:${barColor}"></div></div>
+        <span class="exam-sub-pct">${p}%</span>
+      </div>`;
+    }).join('');
+    showView('vexam-result');
+    if (pct >= 60) launchConfetti();
+  }
+
+  /* ── INIT ── */
+  initStreak();
   renderHome();
 </script>
 </body>
