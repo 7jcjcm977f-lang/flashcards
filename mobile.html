@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="FlashCards">
+  <meta name="apple-mobile-web-app-title" content="Alexrevision">
   <meta name="theme-color" content="#22c55e">
-  <title>FlashCards Première</title>
+  <title>Alexrevision Première</title>
   <style>
     /* ── RESET ── */
     *, *::before, *::after {
@@ -895,7 +895,7 @@
     <!-- Quiz panel -->
     <div id="tp-quiz" class="tp active">
       <div class="page-header">
-        <h1>📚 FlashCards</h1>
+        <h1>📚 Alexrevision</h1>
         <p>Choisissez une matière ou révisez tout</p>
       </div>
       <div class="scroll-body">
@@ -5177,8 +5177,8 @@
   function shareScore() {
     const sub = gSt.subjectId === 'all' ? 'toutes les matières' :
       (GD.find(x => x.id === gSt.subjectId)?.name || gSt.subjectId);
-    const text = `🎮 FlashCards Première — Mode Défi\n⭐ ${gSt.pts} points · ${gSt.correct} bonnes réponses\n🔥 Meilleure série : ${gSt.bestStreak}\n📚 ${sub}\n\nPeux-tu faire mieux ?`;
-    if (navigator.share) navigator.share({ title:'FlashCards Défi', text }).catch(()=>{});
+    const text = `🎮 Alexrevision Première — Mode Défi\n⭐ ${gSt.pts} points · ${gSt.correct} bonnes réponses\n🔥 Meilleure série : ${gSt.bestStreak}\n📚 ${sub}\n\nPeux-tu faire mieux ?`;
+    if (navigator.share) navigator.share({ title:'Alexrevision Défi', text }).catch(()=>{});
     else navigator.clipboard?.writeText(text).then(() => alert('Score copié !'));
   }
 
