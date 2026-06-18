@@ -70,7 +70,7 @@
     .tab-panels { flex: 1; overflow: hidden; position: relative; }
     .tp {
       display: none; position: absolute; inset: 0;
-      flex-direction: column; overflow: hidden;
+      flex-direction: column; overflow: clip;
     }
     .tp.active { display: flex; animation: tpIn .28s cubic-bezier(.22,.68,0,1.1) both; }
 
@@ -94,6 +94,7 @@
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
+      touch-action: pan-y;
       padding: .85rem .9rem calc(.85rem + var(--tab) + var(--sib));
       display: flex; flex-direction: column; gap: .7rem;
     }
@@ -216,6 +217,7 @@
       flex: 1; overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
+      touch-action: pan-y;
       padding: .85rem .9rem calc(.85rem + var(--sib));
       display: flex; flex-direction: column; gap: .85rem;
     }
@@ -377,6 +379,7 @@
       flex: 1; overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
+      touch-action: pan-y;
       padding: .85rem .9rem calc(.85rem + var(--sib));
       display: flex; flex-direction: column; gap: .85rem;
     }
@@ -414,6 +417,7 @@
       flex: 1; overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       overscroll-behavior: contain;
+      touch-action: pan-y;
       padding: .85rem .9rem calc(.85rem + var(--sib));
       display: flex; flex-direction: column; gap: .85rem;
     }
