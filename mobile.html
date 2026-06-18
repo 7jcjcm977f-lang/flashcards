@@ -67,10 +67,11 @@
     ════════════════════════════════════ */
     #vh { background: var(--bg); }
 
-    .tab-panels { flex: 1; min-height: 0; overflow: hidden; position: relative; }
+    .tab-panels { flex: 1; min-height: 0; display: flex; flex-direction: column; }
     .tp {
-      display: none; position: absolute; inset: 0;
-      flex-direction: column; overflow: hidden;
+      display: none;
+      flex: 1; min-height: 0;
+      flex-direction: column;
     }
     .tp.active { display: flex; animation: tpIn .28s cubic-bezier(.22,.68,0,1.1) both; }
 
@@ -710,7 +711,7 @@
       transition:color .15s, border-color .15s;
     }
     .ex-stab.on { color:var(--p); border-bottom-color:var(--p); }
-    .ex-subpanel { display:none; flex:1; flex-direction:column; overflow:hidden; }
+    .ex-subpanel { display:none; flex:1; min-height:0; flex-direction:column; }
     .ex-subpanel.active { display:flex; }
 
     .bac-srow {
