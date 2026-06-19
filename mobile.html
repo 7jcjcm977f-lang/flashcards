@@ -1291,7 +1291,7 @@
           Aucun score encore
         </div>
       </div>
-      <button class="defi-btn-start" id="defi-start-btn" onclick="startGame()">⚡ Lancer le défi !</button>
+      <button class="defi-btn-start" onclick="startGame()">⚡ Lancer le défi !</button>
     </div>
   </div>
 </div>
@@ -1317,7 +1317,6 @@
     </div>
   </div>
   <div class="g-tbar-wrap"><div class="g-tbar-fill" id="g-tbar" style="width:100%"></div></div>
-  <div style="text-align:center;margin:.3rem 0"><span id="g-source-badge" style="font-size:.68rem;padding:.18rem .55rem;border-radius:99px;background:rgba(255,255,255,.1);color:#94a3b8"></span></div>
   <div class="g-body">
     <div class="g-question">
       <div class="g-qnum" id="g-qnum">Q 1</div>
@@ -8518,51 +8517,8 @@
     return shuffle(pool);
   }
 
-  // ── Questions dynamiques depuis Open Trivia DB ──────────────────────
-  const OTDB_CATS = { histoire:23, francais:25, maths:19, svt:17, physique:17 };
-
-  function decodeHtml(str) {
-    const t = document.createElement('textarea');
-    t.innerHTML = str;
-    return t.value;
-  }
-
-  async function fetchTriviaQ(subId, amount) {
-    const cat = OTDB_CATS[subId];
-    const url = `https://opentdb.com/api.php?amount=${amount}&type=multiple${cat ? '&category=' + cat : ''}`;
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 6000);
-    const r = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(tid);
-    const data = await r.json();
-    if (data.response_code !== 0) throw new Error('code ' + data.response_code);
-    return data.results.map(item => ({
-      q: decodeHtml(item.question),
-      answers: shuffle([decodeHtml(item.correct_answer), ...item.incorrect_answers.map(decodeHtml)]),
-      _correct: decodeHtml(item.correct_answer)
-    }));
-  }
-
-  async function startGame() {
-    const btn = $('defi-start-btn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Chargement…';
-    let online = false;
-    try {
-      const netQ = await fetchTriviaQ(gSt.subjectId, 30);
-      // Marquer la bonne réponse en position 0 pour renderGQ()
-      gSt.questions = shuffle([
-        ...netQ.map(q => ({ q: q.q, answers: [q._correct, ...q.answers.filter(a => a !== q._correct)] })),
-        ...buildGQ(gSt.subjectId)
-      ]);
-      online = true;
-    } catch(_) {
-      gSt.questions = buildGQ(gSt.subjectId);
-    }
-    btn.disabled = false;
-    btn.textContent = '⚡ Lancer le défi !';
-    const badge = $('g-source-badge');
-    if (badge) badge.textContent = online ? '🌐 Questions internet' : '📱 Mode hors-ligne';
+  function startGame() {
+    gSt.questions = buildGQ(gSt.subjectId);
     gSt.qIdx = 0; gSt.pts = 0; gSt.streak = 0; gSt.bestStreak = 0;
     gSt.correct = 0; gSt.wrong = 0; gSt.timeLeft = gSt.duration; gSt.answered = false;
     showView('vg-play');
