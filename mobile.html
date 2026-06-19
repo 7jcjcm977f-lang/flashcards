@@ -955,6 +955,29 @@
     .exam-sub-bar-wrap { flex:1; height:6px; background:var(--bdr); border-radius:99px; overflow:hidden; }
     .exam-sub-bar { height:100%; border-radius:99px; transition: width .6s ease; }
     .exam-sub-pct { font-size:.8rem; font-weight:700; color:var(--sub); min-width:34px; text-align:right; }
+
+    /* ── Stats view ── */
+    .stats-btn { background:var(--card); border:1.5px solid var(--bdr); border-radius:14px; padding:.7rem 1rem; font-size:.85rem; font-weight:700; color:var(--txt); display:flex; align-items:center; gap:.6rem; width:100%; text-align:left; cursor:pointer; transition:transform .15s; }
+    .stats-btn:active { transform:scale(.97); }
+    .stats-section { background:var(--card); border-radius:16px; padding:1rem; margin-bottom:.75rem; }
+    .stats-section h3 { font-size:.72rem; font-weight:800; color:var(--sub); letter-spacing:.06em; text-transform:uppercase; margin-bottom:.75rem; }
+    .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
+    .stats-num-card { background:var(--bg); border-radius:12px; padding:.7rem .5rem; text-align:center; }
+    .stats-num-big { font-size:1.55rem; font-weight:900; color:var(--p); line-height:1; }
+    .stats-num-lbl { font-size:.68rem; color:var(--sub); margin-top:.25rem; }
+    .stats-deck-row { margin-bottom:.8rem; }
+    .stats-deck-row:last-child { margin-bottom:0; }
+    .stats-deck-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:.35rem; }
+    .stats-deck-name { font-size:.84rem; font-weight:700; }
+    .stats-deck-pct { font-size:.84rem; font-weight:800; color:var(--p); }
+    .stats-pbar { height:7px; background:var(--bdr); border-radius:99px; overflow:hidden; }
+    .stats-pbar-fill { height:100%; border-radius:99px; transition:width .7s cubic-bezier(.4,0,.2,1); }
+    .stats-deck-meta { font-size:.69rem; color:var(--sub); margin-top:.28rem; }
+    .streak-graph { display:flex; align-items:flex-end; gap:5px; height:52px; margin-top:.8rem; }
+    .str-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+    .str-bar { width:100%; border-radius:4px 4px 0 0; background:var(--p); transition:height .5s ease; }
+    .str-bar-lbl { font-size:.6rem; color:var(--sub); }
+    body.dark .stats-num-card { background:#0b0817; }
   </style>
 </head>
 <body>
@@ -977,6 +1000,7 @@
         <div id="home-tip" class="home-tip" style="display:none"></div>
         <button class="btn-all" onclick="startQuizAll()">🎯 Tout réviser — toutes les matières</button>
         <button class="btn-all" style="background:linear-gradient(135deg,#1e293b,#0f172a);animation:none" onclick="startExam()">📝 Examen Blanc — 3h chrono · score détaillé</button>
+        <button class="stats-btn" onclick="openStats()">📊 <span>Mes statistiques &amp; progression</span></button>
         <div id="quiz-list"></div>
       </div>
     </div>
@@ -1139,6 +1163,15 @@
     <div class="sp"></div>
   </div>
   <div class="escroll" id="deck-body"></div>
+</div>
+
+<div id="vstats" class="view">
+  <div class="dnav">
+    <button class="btn-back" onclick="showView('vh',true);switchTab('quiz')">‹</button>
+    <h2>📊 Statistiques</h2>
+    <div class="sp"></div>
+  </div>
+  <div class="escroll" id="stats-body" style="padding:1rem"></div>
 </div>
 
 <div id="ve" class="view">
@@ -8674,6 +8707,107 @@
 
   function replayGame() { showView('vd', true); initGameTab(); }
 
+  /* ── STATS ── */
+  function openStats() { renderStats(); showView('vstats'); }
+
+  function renderStats() {
+    const body = $('stats-body');
+    const today = new Date().toISOString().slice(0, 10);
+    const monthKey = today.slice(0, 7);
+
+    const streak = parseInt(localStorage.getItem('streak_count') || '0', 10);
+    const best   = parseInt(localStorage.getItem('streak_best')  || streak, 10);
+    const hist   = JSON.parse(localStorage.getItem('streak_history') || '{}');
+
+    // Streak graph — 7 derniers jours
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+      days.push({ date: d, count: hist[d] || 0,
+        lbl: new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', {weekday:'short'}).slice(0, 2) });
+    }
+    const maxS = Math.max(...days.map(d => d.count), 1);
+    const graphHTML = days.map(d => {
+      const h = Math.max(4, Math.round(d.count / maxS * 44));
+      return `<div class="str-bar-wrap">
+        <div class="str-bar" style="height:${h}px;opacity:${d.count > 0 ? 1 : .18}"></div>
+        <div class="str-bar-lbl">${d.lbl}</div>
+      </div>`;
+    }).join('');
+
+    // SRS per deck
+    let totalCards = 0, masteredCards = 0, dueCards = 0, seenToday = 0, seenMonth = 0;
+    const deckRows = QD.decks.map(deck => {
+      const n = deck.cards.length;
+      let mastered = 0, due = 0, st = 0, sm = 0;
+      deck.cards.forEach((_, i) => {
+        const d = srsGet(deck.id, i);
+        if (d.level >= 3) mastered++;
+        if (srsPriority(deck.id, i) === 0) due++;
+        if (d.lastSeen) {
+          const ds = new Date(d.lastSeen).toISOString().slice(0, 10);
+          if (ds === today) st++;
+          if (ds.slice(0, 7) === monthKey) sm++;
+        }
+      });
+      totalCards += n; masteredCards += mastered; dueCards += due;
+      seenToday += st; seenMonth += sm;
+      const pct = Math.round(mastered / n * 100);
+      const dueLabel = due > 0
+        ? `<span style="color:#ef4444">${due} à réviser</span>`
+        : '<span style="color:#22c55e">✅ à jour</span>';
+      return `<div class="stats-deck-row">
+        <div class="stats-deck-hdr">
+          <span class="stats-deck-name">${deck.emoji} ${deck.name.split('–')[0].trim()}</span>
+          <span class="stats-deck-pct">${pct}%</span>
+        </div>
+        <div class="stats-pbar"><div class="stats-pbar-fill" style="width:${pct}%;background:${deck.color}"></div></div>
+        <div class="stats-deck-meta">${mastered}/${n} maîtrisées · ${dueLabel}</div>
+      </div>`;
+    }).join('');
+
+    body.innerHTML = `
+      <div class="stats-section">
+        <h3>🔥 Streak quotidien</h3>
+        <div class="stats-grid">
+          <div class="stats-num-card">
+            <div class="stats-num-big">${streak}</div>
+            <div class="stats-num-lbl">jours en cours</div>
+          </div>
+          <div class="stats-num-card">
+            <div class="stats-num-big">${best}</div>
+            <div class="stats-num-lbl">🏆 record</div>
+          </div>
+        </div>
+        <div class="streak-graph">${graphHTML}</div>
+      </div>
+      <div class="stats-section">
+        <h3>📚 Flashcards</h3>
+        <div class="stats-grid">
+          <div class="stats-num-card">
+            <div class="stats-num-big">${masteredCards}</div>
+            <div class="stats-num-lbl">maîtrisées / ${totalCards}</div>
+          </div>
+          <div class="stats-num-card">
+            <div class="stats-num-big" style="${dueCards > 0 ? 'color:#ef4444' : 'color:#22c55e'}">${dueCards}</div>
+            <div class="stats-num-lbl">à réviser</div>
+          </div>
+          <div class="stats-num-card">
+            <div class="stats-num-big">${seenToday}</div>
+            <div class="stats-num-lbl">vues aujourd'hui</div>
+          </div>
+          <div class="stats-num-card">
+            <div class="stats-num-big">${seenMonth}</div>
+            <div class="stats-num-lbl">vues ce mois</div>
+          </div>
+        </div>
+      </div>
+      <div class="stats-section">
+        <h3>📈 Progression par matière</h3>
+        ${deckRows}
+      </div>`;
+  }
+
   /* ── DARK MODE ── */
   function toggleDark() {
     document.body.classList.toggle('dark');
@@ -8742,6 +8876,7 @@
     const d = srsGet(deckId, idx);
     d.level = ok ? Math.min(d.level + 1, SRS_INTERVALS.length - 1) : 0;
     d.nextReview = Date.now() + SRS_INTERVALS[d.level] * 86400000;
+    d.lastSeen = Date.now();
     localStorage.setItem(srsKey(deckId, idx), JSON.stringify(d));
   }
   function srsPriority(deckId, idx) {
@@ -8779,6 +8914,14 @@
       localStorage.setItem('streak_date',  today);
       localStorage.setItem('streak_count', count);
     }
+    // Save streak history & best
+    const hist = JSON.parse(localStorage.getItem('streak_history') || '{}');
+    hist[today] = count;
+    const cutoff = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+    Object.keys(hist).forEach(k => { if (k < cutoff) delete hist[k]; });
+    localStorage.setItem('streak_history', JSON.stringify(hist));
+    const best = Math.max(parseInt(localStorage.getItem('streak_best') || '0', 10), count);
+    localStorage.setItem('streak_best', best);
     const chip = $('streak-chip');
     const num  = $('streak-num');
     chip.dataset.count = count;
