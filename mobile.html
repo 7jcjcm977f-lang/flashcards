@@ -486,6 +486,13 @@
     .ex-row-num  { font-weight: 800; font-size: .88rem; margin-bottom: .15rem; }
     .ex-row-type { font-size: .78rem; color: var(--sub); }
     .ch-hdr { font-size:.7rem; font-weight:800; color:var(--sub); letter-spacing:.07em; text-transform:uppercase; padding:.6rem .2rem .25rem; margin-top:.3rem; border-bottom:1px solid var(--bdr); }
+    .deck-ch-row { background:var(--card); border-radius:16px; padding:.9rem 1rem; display:flex; align-items:center; gap:.75rem; border-left:4px solid var(--ac,#999); cursor:pointer; position:relative; overflow:hidden; transition:transform .15s; }
+    .deck-ch-row:active { transform:scale(.96); }
+    .deck-ch-name { flex:1; font-weight:700; font-size:.88rem; }
+    .deck-ch-meta { font-size:.75rem; color:var(--sub); margin-top:.15rem; }
+    .deck-ch-badge { background:rgba(0,0,0,.08); color:var(--sub); font-size:.7rem; font-weight:800; padding:.2rem .55rem; border-radius:99px; white-space:nowrap; flex-shrink:0; }
+    .deck-all-btn { background:var(--grad); color:#fff; border-radius:16px; font-size:.9rem; font-weight:700; padding:.85rem 1rem; box-shadow:var(--shadow-p); position:relative; overflow:hidden; transition:transform .12s; }
+    .deck-all-btn:active { transform:scale(.97); }
 
     /* ── FICHE SECTION LIST ── */
     .sec-row {
@@ -1124,6 +1131,16 @@
 </div>
 
 <!-- ═══════════════════ EXERCICE ═══════════════════ -->
+<!-- ═══════════════════ DECK CHAPITRES ═══════════════════ -->
+<div id="vdeck" class="view">
+  <div class="dnav">
+    <button class="btn-back" onclick="showView('vh',true);switchTab('quiz')">‹</button>
+    <h2 id="deck-title">Matière</h2>
+    <div class="sp"></div>
+  </div>
+  <div class="escroll" id="deck-body"></div>
+</div>
+
 <div id="ve" class="view">
   <div class="dnav">
     <button class="btn-back" onclick="goHome()">‹</button>
@@ -6378,6 +6395,53 @@
 
   /* ── QUIZ ── */
   function startDeck(id) {
+    const d = QD.decks.find(x => x.id === id);
+    const chapters = [...new Set(d.cards.map(c => c.chapitre).filter(Boolean))];
+    if (chapters.length > 0) {
+      openDeckChapters(id);
+    } else {
+      startDeckDirect(id);
+    }
+  }
+
+  function openDeckChapters(id) {
+    const d = QD.decks.find(x => x.id === id);
+    $('deck-title').textContent = `${d.emoji} ${d.name}`;
+    const chapters = [...new Set(d.cards.map(c => c.chapitre).filter(Boolean))];
+    const totalDue = srsDueCount(id, d.cards);
+    const totalPct = srsMasteryPct(id, d.cards);
+
+    let html = `<button class="deck-all-btn" onclick="startDeckDirect('${id}')">🎯 Tout réviser — ${d.cards.length} cartes · ${totalPct}% maîtrisé</button>`;
+    chapters.forEach(ch => {
+      const cards = d.cards.filter(c => c.chapitre === ch);
+      const idxs  = cards.map(c => d.cards.indexOf(c));
+      const due   = idxs.filter(i => srsPriority(id, i) === 0).length;
+      const pct   = Math.round(idxs.filter(i => srsGet(id, i).level >= 3).length / cards.length * 100);
+      const dueBadge = due > 0 ? `<span class="srow-due" style="margin-left:.4rem">↩ ${due}</span>` : '';
+      html += `<div class="ch-hdr">📌 ${ch}</div>
+        <div class="deck-ch-row" style="--ac:${d.color}" onclick="startChapter('${id}','${ch.replace(/'/g,"\\'")}')">
+          <div style="flex:1">
+            <div class="deck-ch-name">${ch}${dueBadge}</div>
+            <div class="deck-ch-meta">${cards.length} cartes · ${pct}% maîtrisé</div>
+          </div>
+          <span style="font-size:1.1rem;color:var(--sub)">›</span>
+        </div>`;
+    });
+    $('deck-body').innerHTML = html;
+    showView('vdeck');
+  }
+
+  function startChapter(deckId, ch) {
+    const d = QD.decks.find(x => x.id === deckId);
+    const cards = d.cards.filter(c => c.chapitre === ch);
+    st = mkState();
+    st.deckIds = [deckId]; st.title = `${d.emoji} ${ch}`;
+    const sorted = srsSortedCards(deckId, cards).map(c => ({ ...c, _origIdx: d.cards.indexOf(c) }));
+    st.srsIds = sorted.map(c => ({ deckId, idx: c._origIdx }));
+    beginQuiz(sorted);
+  }
+
+  function startDeckDirect(id) {
     const d = QD.decks.find(x => x.id === id);
     st = mkState();
     st.deckIds = [id]; st.title = `${d.emoji} ${d.name}`;
