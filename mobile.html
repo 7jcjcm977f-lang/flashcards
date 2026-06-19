@@ -8876,10 +8876,41 @@
     $(`dur-${d}`).classList.add('sel');
   }
 
+  /* Extrait une courte réponse depuis le texte long d'une flashcard */
+  function _shortAns(text) {
+    const line = text.split('\n')
+      .map(l => l.replace(/^[\s•\-\*\d]+[\.\)]\s*/, '').trim())
+      .find(l => l.length >= 10) || '';
+    if (!line) return '';
+    const dot = line.indexOf('. ');
+    if (line.length > 95 && dot > 10 && dot < 85) return line.slice(0, dot);
+    return line.slice(0, 95);
+  }
+
+  /* Convertit un deck de flashcards en questions MCQ pour le défi */
+  function _deckToMCQ(deckId) {
+    const deck = QD.decks.find(d => d.id === deckId);
+    if (!deck) return [];
+    const pairs = deck.cards
+      .map(c => ({ q: c.q, a: _shortAns(c.a) }))
+      .filter(c => c.a.length >= 10);
+    return pairs.map((item, i) => {
+      const wrong = shuffle(pairs.filter((_, j) => j !== i)).slice(0, 3).map(o => o.a);
+      if (wrong.length < 3) return null;
+      return { q: item.q, answers: [item.a, ...wrong] };
+    }).filter(Boolean);
+  }
+
   function buildGQ(subId) {
     let pool = [];
-    if (subId === 'all') GD.forEach(s => pool.push(...s.questions));
-    else { const s = GD.find(x => x.id === subId); if (s) pool = [...s.questions]; }
+    if (subId === 'all') {
+      GD.forEach(s => pool.push(...s.questions));
+      QD.decks.forEach(d => pool.push(..._deckToMCQ(d.id)));
+    } else {
+      const s = GD.find(x => x.id === subId);
+      if (s) pool.push(...s.questions);
+      pool.push(..._deckToMCQ(subId));
+    }
     return shuffle(pool);
   }
 
