@@ -6301,12 +6301,12 @@
   }
 
   function updateStreakChip(viewId) {
+    const goodTabs = ['quiz', 'fiches', 'exercices'];
+    const show = viewId === 'vh' && goodTabs.includes(curTab);
     const chip = $('streak-chip');
-    if (!chip || chip.dataset.count < 2) return;
-    const homeViews = ['vh'];
-    const goodTabs  = ['quiz', 'fiches', 'exercices'];
-    const show = homeViews.includes(viewId) && goodTabs.includes(curTab);
-    chip.style.display = show ? 'inline-flex' : 'none';
+    if (chip && chip.dataset.count >= 2) chip.style.display = show ? 'inline-flex' : 'none';
+    const btn = $('theme-btn');
+    if (btn) btn.style.display = show ? '' : 'none';
   }
 
   function shuffle(arr) {
