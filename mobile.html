@@ -6297,6 +6297,16 @@
     const el = $(id);
     el.classList.add('active');
     if (back) el.classList.add('view-back');
+    updateStreakChip(id);
+  }
+
+  function updateStreakChip(viewId) {
+    const chip = $('streak-chip');
+    if (!chip || chip.dataset.count < 2) return;
+    const homeViews = ['vh'];
+    const goodTabs  = ['quiz', 'fiches', 'exercices'];
+    const show = homeViews.includes(viewId) && goodTabs.includes(curTab);
+    chip.style.display = show ? 'inline-flex' : 'none';
   }
 
   function shuffle(arr) {
@@ -6322,6 +6332,7 @@
     }
     $(`tp-${t}`).classList.add('active');
     $(`tb-${t}`).classList.add('on');
+    updateStreakChip('vh');
   }
 
   /* ── HOME ── */
@@ -7156,12 +7167,13 @@
     }
     const chip = $('streak-chip');
     const num  = $('streak-num');
+    chip.dataset.count = count;
     if (count >= 2) {
       num.textContent = count;
-      chip.style.display = 'inline-flex';
       const btn = $('theme-btn');
       const r = btn.getBoundingClientRect();
       chip.style.top = (r.bottom - 3) + 'px';
+      updateStreakChip('vh');
     }
   }
 
