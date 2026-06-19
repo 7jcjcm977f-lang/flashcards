@@ -978,6 +978,13 @@
     .str-bar { width:100%; border-radius:4px 4px 0 0; background:var(--p); transition:height .5s ease; }
     .str-bar-lbl { font-size:.6rem; color:var(--sub); }
     body.dark .stats-num-card { background:#0b0817; }
+    .btn-due  { border-radius:14px; padding:.75rem 1rem; font-size:.88rem; font-weight:800; display:flex; align-items:center; gap:.55rem; width:100%; transition:transform .15s; }
+    .btn-due:active { transform:scale(.97); }
+    .btn-due.has-due  { background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; }
+    .btn-due.no-due   { background:var(--card); border:1.5px solid var(--bdr); color:var(--sub); font-weight:600; }
+    .btn-express { background:linear-gradient(135deg,#8b5cf6,#6d28d9); color:#fff; border-radius:14px; padding:.75rem 1rem; font-size:.88rem; font-weight:800; display:flex; align-items:center; gap:.55rem; width:100%; transition:transform .15s; }
+    .btn-express:active { transform:scale(.97); }
+    #express-timer { font-size:.76rem; font-weight:800; color:#fbbf24; text-align:right; min-width:46px; display:none; }
   </style>
 </head>
 <body>
@@ -999,6 +1006,8 @@
       <div class="scroll-body">
         <div id="home-tip" class="home-tip" style="display:none"></div>
         <button class="btn-all" onclick="startQuizAll()">🎯 Tout réviser — toutes les matières</button>
+        <button id="btn-due" class="btn-due no-due" onclick="startDue()">↩ <span id="btn-due-lbl">Chargement…</span></button>
+        <button class="btn-express" onclick="startExpress()">⚡ <span>Mode Express — 10 cartes · 5 min</span></button>
         <button class="btn-all" style="background:linear-gradient(135deg,#1e293b,#0f172a);animation:none" onclick="startExam()">📝 Examen Blanc — 3h chrono · score détaillé</button>
         <button class="stats-btn" onclick="openStats()">📊 <span>Mes statistiques &amp; progression</span></button>
         <div id="quiz-list"></div>
@@ -1065,6 +1074,7 @@
     <button class="btn-back" onclick="goHome()">‹</button>
     <h2 id="q-title">Quiz</h2>
     <span class="spill" id="q-score">0/0</span>
+    <span id="express-timer"></span>
   </div>
   <div class="pbar"><div class="pfill" id="q-prog" style="width:0%"></div></div>
 
@@ -8236,10 +8246,79 @@
 
   /* ── HOME ── */
   function goHome() {
+    clearExpressTimer();
     st = mkState();
     showView('vh', true);
     if (curTab !== 'defi') switchTab(curTab);
     else switchTab('quiz');
+  }
+
+  /* ── Révision ciblée ── */
+  function updateDueButton() {
+    let due = 0;
+    QD.decks.forEach(d => d.cards.forEach((_, i) => { if (srsPriority(d.id, i) === 0) due++; }));
+    const btn = $('btn-due'), lbl = $('btn-due-lbl');
+    if (!btn) return;
+    if (due === 0) {
+      btn.className = 'btn-due no-due';
+      lbl.textContent = 'Aucune carte due — tu es à jour ✅';
+    } else {
+      btn.className = 'btn-due has-due';
+      lbl.textContent = `Réviser les ${due} carte${due > 1 ? 's' : ''} due${due > 1 ? 's' : ''} maintenant`;
+    }
+  }
+
+  function startDue() {
+    const due = [];
+    QD.decks.forEach(d => d.cards.forEach((c, i) => {
+      if (srsPriority(d.id, i) === 0) due.push({ ...c, _deckId: d.id, _idx: i });
+    }));
+    if (due.length === 0) return;
+    st = mkState();
+    st.deckIds = QD.decks.map(d => d.id);
+    st.title = `↩ ${due.length} carte${due.length > 1 ? 's' : ''} due${due.length > 1 ? 's' : ''}`;
+    st.srsIds = due.map(c => ({ deckId: c._deckId, idx: c._idx }));
+    beginQuiz(shuffle(due));
+  }
+
+  /* ── Mode Express ── */
+  let _expressTimer = null;
+
+  function startExpress() {
+    const all = QD.decks.flatMap(d =>
+      d.cards.map((c, i) => ({ ...c, _deckId: d.id, _idx: i, _pri: srsPriority(d.id, i) }))
+    ).sort((a, b) => a._pri - b._pri || Math.random() - .5).slice(0, 10);
+    st = mkState();
+    st.deckIds = QD.decks.map(d => d.id);
+    st.title = '⚡ Mode Express';
+    st.srsIds = all.map(c => ({ deckId: c._deckId, idx: c._idx }));
+    st.express = true;
+    beginQuiz(all);
+    _startExpressCountdown(5 * 60);
+  }
+
+  function _startExpressCountdown(secs) {
+    clearExpressTimer();
+    let left = secs;
+    const el = $('express-timer');
+    el.style.display = '';
+    const tick = () => {
+      const m = Math.floor(left / 60), s = left % 60;
+      el.textContent = `⏱ ${m}:${String(s).padStart(2,'0')}`;
+      el.style.color = left <= 30 ? '#ef4444' : '#fbbf24';
+    };
+    tick();
+    _expressTimer = setInterval(() => {
+      left--;
+      tick();
+      if (left <= 0) { clearExpressTimer(); showResult(); }
+    }, 1000);
+  }
+
+  function clearExpressTimer() {
+    if (_expressTimer) { clearInterval(_expressTimer); _expressTimer = null; }
+    const el = $('express-timer');
+    if (el) el.style.display = 'none';
   }
 
   function mkState() {
@@ -8517,6 +8596,8 @@
 
   /* ── RESULT ── */
   function showResult() {
+    clearExpressTimer();
+    updateDueButton();
     const total = st.queue.length, ok = st.correct;
     const pct = Math.round(ok / total * 100);
     let em = '😔', ti = 'Continue tes efforts !';
@@ -9299,6 +9380,7 @@
   /* ── INIT ── */
   initStreak();
   renderHome();
+  updateDueButton();
 </script>
 </body>
 </html>
