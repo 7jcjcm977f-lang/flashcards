@@ -965,7 +965,7 @@
     .stats-num-card { background:var(--bg); border-radius:12px; padding:.7rem .5rem; text-align:center; }
     .stats-num-big { font-size:1.55rem; font-weight:900; color:var(--p); line-height:1; }
     .stats-num-lbl { font-size:.68rem; color:var(--sub); margin-top:.25rem; }
-    .stats-deck-row { margin-bottom:.8rem; }
+    .stats-deck-row { margin-bottom:.55rem; }
     .stats-deck-row:last-child { margin-bottom:0; }
     .stats-deck-hdr { display:flex; justify-content:space-between; align-items:center; margin-bottom:.35rem; }
     .stats-deck-name { font-size:.84rem; font-weight:700; }
@@ -8737,6 +8737,7 @@
 
     // SRS per deck
     let totalCards = 0, masteredCards = 0, dueCards = 0, seenToday = 0, seenMonth = 0;
+    const SHORT_NAMES = { histoire:'Histoire-Géo', francais:'Français', maths:'Maths', svt:'SVT', physique:'Physique-Chimie' };
     const deckRows = QD.decks.map(deck => {
       const n = deck.cards.length;
       let mastered = 0, due = 0, st = 0, sm = 0;
@@ -8753,12 +8754,13 @@
       totalCards += n; masteredCards += mastered; dueCards += due;
       seenToday += st; seenMonth += sm;
       const pct = Math.round(mastered / n * 100);
+      const shortName = SHORT_NAMES[deck.id] || deck.name.split('–')[0].trim();
       const dueLabel = due > 0
         ? `<span style="color:#ef4444">${due} à réviser</span>`
         : '<span style="color:#22c55e">✅ à jour</span>';
       return `<div class="stats-deck-row">
         <div class="stats-deck-hdr">
-          <span class="stats-deck-name">${deck.emoji} ${deck.name.split('–')[0].trim()}</span>
+          <span class="stats-deck-name">${deck.emoji} ${shortName}</span>
           <span class="stats-deck-pct">${pct}%</span>
         </div>
         <div class="stats-pbar"><div class="stats-pbar-fill" style="width:${pct}%;background:${deck.color}"></div></div>
